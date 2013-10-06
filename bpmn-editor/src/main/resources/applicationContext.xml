@@ -3,20 +3,34 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:aop="http://www.springframework.org/schema/aop"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 
     <context:annotation-config />
     <context:component-scan base-package="es.us.isa.ppinot.resource"/>
     <context:component-scan base-package="es.us.isa.bpms"/>
 
+
+
+    <!-- Stencilsets and extensions -->
+    <mvc:resources mapping="/editor/stencilsets/**" location="classpath:/stencilsets/"/>
+
+    <!-- Webjars -->
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" order="-1"/>
     <!-- SpringMVC Resteasy configuration -->
     <import resource="classpath:springmvc-resteasy.xml"/>
+    <bean id="resteasy.handlerMapping" parent="abstract.resteasy.handlerMapping">
+        <property name="order" value="10"/>
+        <property name="throwNotFound" value="false"/>
+    </bean>    
+    <!-- Necessary for socialauth authentication -->
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
         <property name="order" value="0" />
     </bean>
-    <!--<bean class="org.springframework.web.servlet.mvc.method.annotation.Requ"/>-->
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
     <bean id="viewResolver"
           class="org.springframework.web.servlet.view.UrlBasedViewResolver">
@@ -24,6 +38,8 @@
         <property name="prefix" value="/WEB-INF/jsp/"/>
         <property name="suffix" value=".jsp"/>
     </bean>
+    <!-- Default handler for other resources -->
+    <mvc:default-servlet-handler/>
 
     <!-- Repository -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>

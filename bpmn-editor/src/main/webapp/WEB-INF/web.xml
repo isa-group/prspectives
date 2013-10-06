@@ -17,12 +17,7 @@
 
     <servlet-mapping>
         <servlet-name>Spring</servlet-name>
-        <url-pattern>/service/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>Spring</servlet-name>
-        <url-pattern>*.do</url-pattern>
+        <url-pattern>/</url-pattern>
     </servlet-mapping>
 
 	<!-- Session timeout on one day -->

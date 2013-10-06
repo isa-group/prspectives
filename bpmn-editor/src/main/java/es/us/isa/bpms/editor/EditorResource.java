@@ -20,11 +20,15 @@ public class EditorResource {
         return this.getClass().getResourceAsStream("/plugins.xml");
     }
 
+    /**
+    * Returns the stencilset by default. Right now, there is no support for 
+    * multiple stencilsets in the same editor.
+    */
     @Path("/stencilset")
     @GET
     @Produces("application/json")
     public InputStream getStencilset() {
-        return this.getClass().getResourceAsStream("/json/bpmn2.0.json");
+        return this.getClass().getResourceAsStream("/stencilsets/bpmn2.0/bpmn2.0.json");
     }
 
     @Path("/ssextensions")
