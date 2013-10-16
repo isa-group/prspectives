@@ -49,7 +49,7 @@
 					<stopKey>bpmn-editor</stopKey>
 					<!-- Redeploy every x seconds if changes are detected, 0 for no automatic 
 						redeployment -->
-					<scanIntervalSeconds>0</scanIntervalSeconds>
+					<scanIntervalSeconds>30</scanIntervalSeconds>
 					<!-- make sure Jetty also finds the widgetset -->
 					<webAppConfig>
 						<contextPath>/bpmn-editor</contextPath>

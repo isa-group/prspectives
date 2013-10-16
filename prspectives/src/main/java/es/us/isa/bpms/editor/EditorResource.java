@@ -40,7 +40,7 @@ public class EditorResource {
 
 
     @GET
-    @Produces("application/xhtml+xml")
+    @Produces("text/html")
     public InputStream getEditor(@QueryParam("id") String id) {
         return this.getClass().getResourceAsStream("/editor.html");
     }

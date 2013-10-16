@@ -1,4 +1,4 @@
-angular.module('templatesApp', ['ppinotTemplates', 'loginModule']);
+angular.module('templatesApp', ['ppinotTemplates', 'loginModule', 'navbarModule']);
 
 function iteratePPIs(ppiSet, iterationFunction) {
     $(ppiSet).each(function() {
@@ -63,13 +63,11 @@ function cleanScope(ppiSet) {
 
 function TemplatesCtrl($scope, $location, $http) {
 
-	$http.get("service/models/").success(function(data) {
-	    $scope.models = {};
-	    angular.forEach(data, function(info) {
-		    $scope.models[info.modelId] = info;
-	    });
-	});
 
+    $scope.$watch("navbar.currentModel", function(currentModel, oldModel) {
+        if (currentModel)
+            $scope.load(currentModel.modelId);
+    });
 
     $scope.load = function(modelId) {
         $scope.currentModel = modelId;
@@ -93,8 +91,4 @@ function TemplatesCtrl($scope, $location, $http) {
         saveArrays($scope.ppis);
         $http.put($scope.model.url+"/ppis", $scope.ppis);
     }
-
-    // Loads the current model
-    var modelId = $location.path().substr(1);
-    $scope.load(modelId);
 }
