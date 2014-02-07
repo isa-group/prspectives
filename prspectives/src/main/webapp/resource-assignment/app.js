@@ -1,3 +1,7 @@
+window.alert = function(message){
+	throw message;
+};
+
 angular.module('ralApp', ['navbarModule','loginModule','ui.bootstrap'])
 .filter('array', function() {
   return function(items) {
@@ -127,6 +131,24 @@ function AssignmentCtrl($scope, $http, $log) {
         $log.info("Saving model...");
         $log.info($scope.raw);
         $http.put($scope.navbar.currentModel.url+"/json", $scope.raw);
+    }
+    
+    $scope.checkSyntax = function(activity, value){
+    	
+		  if(value) {
+			try{
+				var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
+				var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
+				var parser = new RALParser(tokens);
+				parser.expression();
+				$log.info("valid expression");
+			}catch(error){
+				$log.error(error);
+				document.getElementById("info-" + activity).innerHTML = "Invalid Expression.";
+			}
+			
+			
+		  }
     }
 
 }

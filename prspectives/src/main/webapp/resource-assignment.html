@@ -11,6 +11,7 @@
             padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
           }
 
+		 
           .positions ul.actions {
             display: none;
           }
@@ -45,13 +46,17 @@
 
 	    </style>
         <script src="webjars/jquery/1.7.2/jquery.min.js"></script>
-        <script src="webjars/angularjs/1.0.7/angular.js"></script>
+      <!--  <script src="webjars/angularjs/1.0.7/angular.js"></script> -->  
+        <script src="libs/angular.min-1.2.12.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.6.0/ui-bootstrap-tpls.js"></script>
         <script src="templates/process.js"></script>
         <script src="resource-assignment/app.js"></script>
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
+        <script src="libs/parser/antlr3-all-min.js"></script>
+        <script src="libs/parser/RALLexer.js"></script>
+        <script src="libs/parser/RALParser.js"></script>
     </head>
 
 <body ng-controller="AssignmentCtrl">
@@ -83,7 +88,9 @@
                     <div class="control-group" ng-repeat="activity in process.activityNames">
                         <label class="control-label">{{activity}}</label>
                         <div class="controls">
-                            <input class="input-xxlarge" type="text" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression"/>
+                            <input class="input-xxlarge" id="{{'input-' + activity}}" type="text" ng-blur="checkSyntax(activity,assignments[process.processName].ralAssignment[activity]);" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression"/>
+                        	<span class="error" id="{{'info-' + activity}}"></span>
+                        	<div id="{{'report-' + activity}}" style="display: none">bla bla</div>
                         </div>
                     </div>
                 </form>
