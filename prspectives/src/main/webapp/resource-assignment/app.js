@@ -133,22 +133,84 @@ function AssignmentCtrl($scope, $http, $log) {
         $http.put($scope.navbar.currentModel.url+"/json", $scope.raw);
     }
     
-    $scope.checkSyntax = function(activity, value){
-    	
-		  if(value) {
+    $scope.getOldAssignmentValue = function(processName,activity){
+    	var result = "";
+    	if($scope.oldAssignments && $scope.oldAssignments[processName] && $scope.oldAssignments[processName].ralAssignment[activity]){
+    		 result = $scope.oldAssignments[processName].ralAssignment[activity];
+    	}
+    	return result;
+    }
+    
+    $scope.setOldAssignmentValue = function(processName,activity, value){
+    	if($scope.oldAssignments==null){
+    		$scope.oldAssignments = new Array();
+    	}
+    	if($scope.oldAssignments[processName]==null){
+    		$scope.oldAssignments[processName] = {ralAssignment: new Array()};
+    	}
+    	$scope.oldAssignments[processName].ralAssignment[activity] = value;
+    }
+    
+    $scope.checkSyntax = function(activity, processName, organizationId){
+    	var value = $scope.assignments[processName].ralAssignment[activity];
+    	var oldValue = $scope.getOldAssignmentValue(processName, activity);
+		  if(value && value.trim()!=oldValue) {
+			  value=value.trim();
+			  $scope.setOldAssignmentValue(processName, activity, value);
+			$log.info("checking syntax: " + value);
+		    document.getElementById("info-" + activity).innerHTML = "<img src=\"resource-assignment/loading.gif\" />";
+			document.getElementById("info-" + activity).setAttribute("class", "infoResult");
 			try{
 				var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
 				var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
 				var parser = new RALParser(tokens);
 				parser.expression();
-				$log.info("valid expression");
+				$log.info("getting user token...");
+				$http.get("http://localhost:8080/bpmn-editor/service/user/token").success(function(token) {
+					$log.info("user token obtained successfully...");
+		            var orgUrl = "http://localhost:8080/bpmn-editor/service/model/" + token + "/" + organizationId + "/json";
+					var bpmnUrl = "http://localhost:8080/bpmn-editor/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
+					var url = "http://localhost:8080/ral-web-analyser/rest/analyser/check_participants_for_expression/" + $scope.bpmnModel.modelId + "/" + activity + "/RESPONSIBLE?bpmn=" + bpmnUrl + "&organization=" + orgUrl + "&expression=" + value;
+					$http.get(url).success(function(data) {
+						$log.info("analyser success:" + data);
+						document.getElementById("info-" + activity).innerHTML = data.length + " potential performers found.  <a onclick=\"runToggle('report-" + activity + "');\" style=\"cursor: pointer; text-decoration: none; font-weight: 900;\">+</a>"; 
+						var text = "";
+						for(var i=0; i<data.length; i++){
+							if(text!=""){
+								text+=", ";
+							}
+							text+=data[i];
+						}
+						
+						
+						if(data.length==0){
+							document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
+							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-danger");
+							text = "<h4>Consistency failure</h4><p>This assignment is not consistent. Please, modify the assignment expression.</p>";
+						}else if(data.length==1){
+							document.getElementById("info-" + activity).setAttribute("class", "alert infoResult");
+							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-warning");
+							text = "<h4>Critical Task</h4><p>This task is critical. Only one potential performer found: " + text + ". Having only one potential performer is not recommendable.</p>";
+						}else{
+							document.getElementById("info-" + activity).setAttribute("class", "alert alert-success infoResult");
+							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-info");
+							text = "<h4>Assignment checked</h4><p>Potential performers found: " + text + ".</p>";
+						}
+						
+						document.getElementById("report-" + activity).innerHTML = text;
+			        });
+		        });
+				
 			}catch(error){
 				$log.error(error);
-				document.getElementById("info-" + activity).innerHTML = "Invalid Expression.";
+				document.getElementById("info-" + activity).innerHTML = "Invalid Expression!";
+				document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
 			}
 			
-			
+			 
 		  }
     }
 
 }
+
+

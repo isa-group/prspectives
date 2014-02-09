@@ -2,6 +2,7 @@ package es.us.isa.bpms.repository;
 
 import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.users.UserService;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,25 +43,27 @@ public class FileSystemRepository implements ModelRepository {
 
     @Override
     public Model getModel(String id) {
-        Model m;
-
-        try {
-            m = Model.createModel(createJSONObject(getModelReader(id)));
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to get model " + id, e);
-        }
-
-        return m;
+        return getModelUsingToken(id,null);
     }
 
     private JSONObject createJSONObject(InputStream modelReader) throws IOException, JSONException {
         String json = IOUtils.toString(modelReader);
         return new JSONObject(json);
     }
-
     @Override
     public InputStream getModelReader(String id) {
-        BaseDirectory baseDirectory = createBaseDirectory();
+        return getModelReaderUsingToken(id,null);
+    }
+    
+    @Override
+    public InputStream getModelReaderUsingToken(String id, String token) {
+    	 BaseDirectory baseDirectory;
+    	if(token==null || token.isEmpty()){
+    		baseDirectory = createBaseDirectory();
+    	}else{
+    		baseDirectory = createBaseDirectory(userService.getUserByToken(token));
+    	}
+        
         InputStream modelReader = baseDirectory.getModelReader(id);
 
         try {
@@ -270,6 +273,19 @@ public class FileSystemRepository implements ModelRepository {
 
         return new BaseDirectory(baseDirectory);
     }
+
+	@Override
+	public Model getModelUsingToken(String id, String token) {
+		Model m;
+
+        try {
+            m = Model.createModel(createJSONObject(getModelReaderUsingToken(id, token)));
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to get model " + id, e);
+        }
+
+        return m;
+	}
 
 
 }

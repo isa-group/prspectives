@@ -188,27 +188,7 @@ public class ModelsResource {
     @GET
     public String getModelXml(@PathParam("id") String id) {
         Model m = modelRepository.getModel(id);
-
-        if (m == null) {
-            throw new org.jboss.resteasy.spi.NotFoundException("Model not found");
-        }
-
-        String xml = m.getXml();
-
-        if ((xml == null || xml.isEmpty())) {
-            if (model2XmlConverter.canTransform(m.getType())) {
-                try {
-                    xml = createAndStoreXml(m);
-                } catch (Exception e) {
-                    log.log(Level.WARNING, "Error while transforming model to XML", e);
-                    throw new RuntimeException("Error while transforming model to XML", e);
-                }
-            } else {
-                throw new NotFoundException("XML representation not available");
-            }
-        }
-
-        return xml;
+        return converModelToXML(m);
     }
 
     private String createAndStoreXml(Model m) {
@@ -385,4 +365,49 @@ public class ModelsResource {
         InputStream processReader = IOUtils.toInputStream(getModel(id));
         return new PPINOTResource(processReader, id, userService, model2XmlConverter, modelRepository);
     }
+    
+   // ------------------------------ ADDED BY TOKEN
+    
+    @Path("/model/{token}/{id}/xml")
+    @Produces(MediaType.APPLICATION_XML)
+    @GET
+    public String getModelByTokenXml(@PathParam("token") String token, @PathParam("id") String id) {
+        Model m = modelRepository.getModelUsingToken(id, token);
+        return converModelToXML(m);
+    } 
+    
+    @Path("/model/{token}/{id}/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public InputStream getModelByTokenJson(@PathParam("token") String token, @PathParam("id") String id) {
+        return modelRepository.getModelReaderUsingToken(id, token);
+    }
+    
+    
+    private String converModelToXML(Model m){
+    	if (m == null) {
+            throw new org.jboss.resteasy.spi.NotFoundException("Model not found");
+        }
+
+        String xml = m.getXml();
+
+        if ((xml == null || xml.isEmpty())) {
+            if (model2XmlConverter.canTransform(m.getType())) {
+                try {
+                    xml = createAndStoreXml(m);
+                } catch (Exception e) {
+                    log.log(Level.WARNING, "Error while transforming model to XML", e);
+                    throw new RuntimeException("Error while transforming model to XML", e);
+                }
+            } else {
+                throw new NotFoundException("XML representation not available");
+            }
+        }
+
+        return xml;
+    }
+    
+    
+    
+    
 }
