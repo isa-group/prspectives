@@ -1,3 +1,4 @@
+window.alertProxy = window.alert;
 window.alert = function(message){
 	throw message;
 };
@@ -23,6 +24,8 @@ function AssignmentCtrl($scope, $http, $log) {
         "informed": "I"
     };
 
+	
+    
     $scope.rasciCell = null;
 
     $scope.loadCell = function(data) {
@@ -42,7 +45,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         $scope.rasciCell = cell;
-    }
+    };
 
     $scope.saveCell = function(cell) {
         var assign = cell.assign;
@@ -61,7 +64,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         $scope.rasciCell = null;
-    }
+    };
 
     $scope.depict = function(data) {
         var result = [];
@@ -72,7 +75,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         return result.join(" / ");
-    }
+    };
 
     $scope.depictDetails = function(data) {
         var result = [];
@@ -83,7 +86,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         return result.join("<br/>");
-    }
+    };
 
     $scope.load = function(currentModel) {
         $scope.bpmnModel = new BPMNModel(currentModel.modelId, currentModel.url);
@@ -118,7 +121,7 @@ function AssignmentCtrl($scope, $http, $log) {
         $http.get($scope.navbar.models[modelId].url+"/json").success(function(data) {
             $scope.organization = data.model;
         });
-    }
+    };
 
     $scope.$watch("navbar.currentModel", function(currentModel, oldModel) {
         $log.info("Current model: " + currentModel);
@@ -131,7 +134,7 @@ function AssignmentCtrl($scope, $http, $log) {
         $log.info("Saving model...");
         $log.info($scope.raw);
         $http.put($scope.navbar.currentModel.url+"/json", $scope.raw);
-    }
+    };
     
     $scope.getOldAssignmentValue = function(processName,activity){
     	var result = "";
@@ -139,7 +142,7 @@ function AssignmentCtrl($scope, $http, $log) {
     		 result = $scope.oldAssignments[processName].ralAssignment[activity];
     	}
     	return result;
-    }
+    };
     
     $scope.setOldAssignmentValue = function(processName,activity, value){
     	if($scope.oldAssignments==null){
@@ -149,7 +152,7 @@ function AssignmentCtrl($scope, $http, $log) {
     		$scope.oldAssignments[processName] = {ralAssignment: new Array()};
     	}
     	$scope.oldAssignments[processName].ralAssignment[activity] = value;
-    }
+    };
     
     $scope.checkSyntax = function(activity, processName, organizationId){
     	var value = $scope.assignments[processName].ralAssignment[activity];
@@ -166,14 +169,16 @@ function AssignmentCtrl($scope, $http, $log) {
 				var parser = new RALParser(tokens);
 				parser.expression();
 				$log.info("getting user token...");
-				$http.get("http://localhost:8080/bpmn-editor/service/user/token").success(function(token) {
+				var path = $scope.getContextPath();
+				$http.get(path + "/service/user/token").success(function(token) {
 					$log.info("user token obtained successfully...");
-		            var orgUrl = "http://localhost:8080/bpmn-editor/service/model/" + token + "/" + organizationId + "/json";
-					var bpmnUrl = "http://localhost:8080/bpmn-editor/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
-					var url = "http://localhost:8080/ral-web-analyser/rest/analyser/check_participants_for_expression/" + $scope.bpmnModel.modelId + "/" + activity + "/RESPONSIBLE?bpmn=" + bpmnUrl + "&organization=" + orgUrl + "&expression=" + value;
+		            
+					var orgUrl = path + "/service/model/" + token + "/" + organizationId + "/json";
+					var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
+					var url = $scope.getAnalyserPath() + "/rest/analyser/check_participants_for_expression/" + $scope.bpmnModel.modelId + "/" + activity + "/RESPONSIBLE?bpmn=" + bpmnUrl + "&organization=" + orgUrl + "&expression=" + value;
 					$http.get(url).success(function(data) {
 						$log.info("analyser success:" + data);
-						document.getElementById("info-" + activity).innerHTML = data.length + " potential performers found.  <a onclick=\"runToggle('report-" + activity + "');\" style=\"cursor: pointer; text-decoration: none; font-weight: 900;\">+</a>"; 
+						document.getElementById("info-" + activity).innerHTML = "<span>" + data.length + " potential performers found.</span><a id=\"link-"+activity+"\" onclick=\"runToggle('report-" + activity + "', 'link-"+activity+"');\"><i class=\"icon-plus-sign\"></i></a>"; 
 						var text = "";
 						for(var i=0; i<data.length; i++){
 							if(text!=""){
@@ -186,15 +191,15 @@ function AssignmentCtrl($scope, $http, $log) {
 						if(data.length==0){
 							document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
 							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-danger");
-							text = "<h4>Consistency failure</h4><p>This assignment is not consistent. Please, modify the assignment expression.</p>";
+							text = "<div style=\"padding: 15px 20px;\"><h4>Consistency failure</h4><p>This assignment is not consistent. Please, modify the assignment expression.</p></div>";
 						}else if(data.length==1){
 							document.getElementById("info-" + activity).setAttribute("class", "alert infoResult");
 							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-warning");
-							text = "<h4>Critical Task</h4><p>This task is critical. Only one potential performer found: " + text + ". Having only one potential performer is not recommendable.</p>";
+							text = "<div style=\"padding: 15px 20px;\"><h4>Critical Task</h4><p>This task is critical. Only one potential performer found: " + text + ". Having only one potential performer is not recommendable.</p></div>";
 						}else{
 							document.getElementById("info-" + activity).setAttribute("class", "alert alert-success infoResult");
 							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-info");
-							text = "<h4>Assignment checked</h4><p>Potential performers found: " + text + ".</p>";
+							text = "<div style=\"padding: 15px 20px;\"><h4>Assignment checked</h4><p>Potential performers found: " + text + ".</p></div>";
 						}
 						
 						document.getElementById("report-" + activity).innerHTML = text;
@@ -209,8 +214,18 @@ function AssignmentCtrl($scope, $http, $log) {
 			
 			 
 		  }
-    }
-
-}
+    };
+    
+    $scope.getContextPath = function(){
+    	var path = window.location.origin;
+    	path += window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
+    	return path;
+    };
+    
+    $scope.getAnalyserPath = function(){
+    	return window.location.origin + "/ral-web-analyser";
+    };
+    
+};
 
 
