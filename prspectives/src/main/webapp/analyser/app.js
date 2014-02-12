@@ -16,27 +16,17 @@ angular.module('analyserApp', ['navbarModule','loginModule','ui.bootstrap'])
 
 function AnalyserCtrl($scope, $http, $log) {
  
-	$scope.abbreviation = new Array();
-	$scope.abbreviation["Potential Participants"] = "P.P.";
-	$scope.abbreviation["Critical Activities"] = "C.A.";
-	$scope.abbreviation["Potential Activities"] = "P.A.";
-	$scope.abbreviation["Basic Consistency"] = "B.C.";
-	$scope.abbreviation["Non Participants"] = "N.P.";
-	$scope.abbreviation["Critical Participants"] = "C.P.";
-	$scope.abbreviation["Indispensable Participants"] = "I.P.";
-	$scope.nextPerformedActionId = 9;                       	
-	$scope.performedActions = [
-			          {id:1, name:"Potential Participants", param:"H", success:true, result:"Maria, Ana, Antonio"},
-			          {id:2, name:"Critical Activities", param:"A,B,C,D,E,F", success:true, result:"A,B,C"},
-			          {id:3, name:"Potential Participants", param:"H", success:true, result:"Maria, Ana, Antonio"},
-			          {id:4, name:"Critical Activities", param:"A,B,C,D,E,F", success:true, result:"A,B,C"},
-			          {id:5, name:"Indispensable Participants", param:"H", success:true, result:"Maria, Ana, Antonio"},
-			          {id:6, name:"Critical Activities", param:"A,B,C,D,E,F", success:true, result:"A,B,C"},
-			          {id:7, name:"Critical Participants", param:"H", success:true, result:"Maria, Ana, Antonio"},
-			          {id:8, name:"Critical Activities", param:"A,B,C,D,E,F", success:true, result:"A,B,C"}
-			          ];
-	$scope.selectedOperation = "";
-	$scope.selectedActivity = "";
+	$scope.operationInfo = new Array();
+	$scope.operationInfo["Potential Participants"] = {abb:"P.P.", description:"Find people who are able to perform an activity."} ;
+	$scope.operationInfo["Critical Activities"] = {abb:"C.A.", description:"Find the activities which are critical among the chosen activities."};
+	$scope.operationInfo["Potential Activities"] = {abb:"P.A.", description:"Find the activities that can be performed by a person."};
+	$scope.operationInfo["Basic Consistency"] = {abb:"B.C.", description:"Check if an activity is consistent."};
+	$scope.operationInfo["Non Participants"] = {abb:"N.P.", description:"Find the persons who cannot perform any of the chosen activities."};
+	$scope.operationInfo["Critical Participants"] = {abb:"C.P.", description:"Find the persons who perform critical activities."};
+	$scope.operationInfo["Indispensable Participants"] = {abb:"I.P.", description:"Find the persons who are considered indispensable: The ones who perform mandatory critical activities."};
+	$scope.nextPerformedActionId = 1;                       	
+	$scope.performedActions = [];
+	$scope.selected = {person: "", activity:"", operation:""};
 	$scope.activitySet = new Array();
 	window.scope = $scope;
 	$scope.selectAll = function (){
@@ -52,7 +42,7 @@ function AnalyserCtrl($scope, $http, $log) {
 	};
 	
 	$scope.showNewOperationModal = function (newOp){
-		$scope.selectedOperation = newOp;
+		$scope.selected.operation = newOp;
 		$("#newOpModal").modal("show");
 	};
 	
@@ -66,15 +56,15 @@ function AnalyserCtrl($scope, $http, $log) {
 	};
 	
 	$scope.calculateText = function(text, tabs){
-		return $scope.abbreviation[text];
+		return $scope.operationInfo[text].abb;
 	};
 	
 	$scope.showOneActivitySelector = function(){
-		return $scope.selectedOperation == 'Potential Participants' || $scope.selectedOperation == 'Basic Consistency';
+		return $scope.selected.operation == 'Potential Participants' || $scope.selected.operation == 'Basic Consistency';
 	};
 	
 	$scope.showOnePersonSelector = function(){
-		return $scope.selectedOperation == 'Potential Activities';
+		return $scope.selected.operation == 'Potential Activities';
 	}; 
 	
 	$scope.showMultipleActivitySelector = function(){
@@ -82,20 +72,21 @@ function AnalyserCtrl($scope, $http, $log) {
 	};
 	
 	
-	$scope.createNewAnalysis = function(){
-		var action = {id:$scope.nextPerformedActionId, name: $scope.selectedOperation, param:$scope.getParamString(), success:false, result:"waiting"};
+	$scope.createNewAnalysis = function(){	
+		var action = {id:$scope.nextPerformedActionId, name: $scope.selected.operation, param:$scope.getParamString(), success:false, result:"waiting"};
+		$("#newOpModal").modal('hide');
 		$scope.performedActions[$scope.performedActions.length] = action;
 		$scope.nextPerformedActionId++;
-		$scope.selectedOperation="";
+		$scope.selected.operation="";
 		$scope.doAnalysis(action);
 	};
 	
 	$scope.getParamString = function (){
 		var res="";
 		if($scope.showOneActivitySelector()){
-			res = $scope.selectedActivity;
+			res = $scope.selected.activity;
 		}else if($scope.showOnePersonSelector()){
-			res = "";
+			res = $scope.selected.person;
 		}else if($scope.showMultipleActivitySelector()){
 			var result = "";
 			for(var x in $scope.activitySet){
@@ -104,12 +95,13 @@ function AnalyserCtrl($scope, $http, $log) {
 						result+=";";
 					}
 					result+=x;
+					$scope.activitySet[x]=false;
 				}
 			}
 			res = result;
 		}
-		$scope.selectedActivity = "";
-		$scope.activitySet = new Array();
+		$scope.selected.activity = "";
+		$scope.selected.person = "";
 		return res;
 	};
 	
