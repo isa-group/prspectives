@@ -2,10 +2,11 @@ package es.us.isa.bpms.model;
 
 
 import es.us.isa.bpms.process.ProcessElementsResource;
+import es.us.isa.bpms.ral.RALModel2XMLConverter;
 import es.us.isa.bpms.repository.ModelRepository;
 import es.us.isa.bpms.users.UserService;
-import es.us.isa.ppinot.resource.PPINOTModel2XmlConverter;
 import es.us.isa.ppinot.resource.PPINOTResource;
+
 import org.apache.batik.transcoder.AbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
 import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ public class ModelsResource {
 
     private ModelRepository modelRepository;
 
-    @Autowired
+    //@Autowired
     private Model2XmlConverter model2XmlConverter;
 
     @Autowired
@@ -58,12 +60,17 @@ public class ModelsResource {
         this();
         this.userService = userService;
         this.context = context;
-        model2XmlConverter = new PPINOTModel2XmlConverter(context.getRealPath("/WEB-INF/xsd/BPMN20.xsd"));
+        //model2XmlConverter = new PPINOTModel2XmlConverter(context.getRealPath("/WEB-INF/xsd/BPMN20.xsd"));
+        model2XmlConverter = new RALModel2XMLConverter(context.getRealPath("/WEB-INF/xsd/BPMN20.xsd"));
+        
     }
 
     public ModelsResource() {
         super();
         log.info("Loaded ModelsResource");
+
+        model2XmlConverter = new RALModel2XMLConverter();
+        
 
     }
 
@@ -193,12 +200,13 @@ public class ModelsResource {
 
     private String createAndStoreXml(Model m) {
         String xml;
+        
         JSONObject jsonModel = m.getModel();
         if (jsonModel == null) {
             throw new RuntimeException("Model not valid");
         }
 
-        xml = model2XmlConverter.transformToXml(jsonModel).toString();
+        xml = model2XmlConverter.transformToXml(m).toString();
         m.setXml(xml);
 
         try {
@@ -302,7 +310,7 @@ public class ModelsResource {
             JSONObject jsonObject = new JSONObject(jsonXml);
             m.setModel(jsonObject);
             if (model2XmlConverter.canTransform(type)) {
-                m.setXml(model2XmlConverter.transformToXml(jsonObject).toString());
+                m.setXml(model2XmlConverter.transformToXml(m).toString());
             }
         } catch (JSONException e) {
             throw new RuntimeException("The submitted model is not valid", e);
@@ -389,9 +397,12 @@ public class ModelsResource {
             throw new org.jboss.resteasy.spi.NotFoundException("Model not found");
         }
 
-        String xml = m.getXml();
+        //String xml = m.getXml();
 
+    	String xml=null;
+    	
         if ((xml == null || xml.isEmpty())) {
+        	System.out.println("TYPE: " + m.getType());
             if (model2XmlConverter.canTransform(m.getType())) {
                 try {
                     xml = createAndStoreXml(m);

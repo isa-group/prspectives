@@ -108,6 +108,7 @@
 		</dependency>
 
 		<!-- PPINOT -->
+		
 		<dependency>
 			<groupId>es.us.isa.bpmn</groupId>
 			<artifactId>bpmn-model</artifactId>
@@ -215,6 +216,12 @@
 			<version>${spring.version}</version>
 		</dependency>
 		
+		
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>raci2bpmn</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
 		<!--   <dependency>
 			<groupId>net.sf.ehcache</groupId>
 			<artifactId>ehcache-core</artifactId>

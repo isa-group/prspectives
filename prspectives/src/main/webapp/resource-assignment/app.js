@@ -102,10 +102,19 @@ function AssignmentCtrl($scope, $http, $log) {
                 }
                 $scope.raw = data;
                 $scope.assignments = data.extensions.assignments;
-
+                var timeMillis = 10;
                 angular.forEach($scope.bpmnModel.processes, function(p, id) {
-                    if (! $scope.assignments[p.processName])
+                	
+                    if (! $scope.assignments[p.processName]){
                         $scope.assignments[p.processName] = {ralAssignment: {}, rasciAssignment: {}};
+                    }else{
+                    	angular.forEach($scope.assignments[p.processName].ralAssignment, function(ax, aid) {
+	                    	window.setTimeout(function() {
+	                    		  $scope.checkSyntax(aid,p.processName,$scope.assignments.organizationalModel);
+	                    		  timeMillis += 100;
+	                    	}, timeMillis);
+                    	});
+                    }
                 });
             });
         });
@@ -155,13 +164,14 @@ function AssignmentCtrl($scope, $http, $log) {
     };
     
     $scope.checkSyntax = function(activity, processName, organizationId){
+
     	var value = $scope.assignments[processName].ralAssignment[activity];
     	var oldValue = $scope.getOldAssignmentValue(processName, activity);
 		  if(value && value.trim()!=oldValue) {
 			  value=value.trim();
 			  $scope.setOldAssignmentValue(processName, activity, value);
 			$log.info("checking syntax: " + value);
-		    document.getElementById("info-" + activity).innerHTML = "<img src=\"resource-assignment/loading.gif\" />";
+		    document.getElementById("info-" + activity).innerHTML = "<img src=\"common/loading.gif\" />";
 			document.getElementById("info-" + activity).setAttribute("class", "infoResult");
 			try{
 				var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
@@ -203,6 +213,10 @@ function AssignmentCtrl($scope, $http, $log) {
 						}
 						
 						document.getElementById("report-" + activity).innerHTML = text;
+			        }).error(function(error){
+			        	$log.error(error);
+			        	document.getElementById("info-" + activity).innerHTML = "<span>Error performing the analysis.</span>"; 
+			        	document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
 			        });
 		        });
 				

@@ -1,0 +1,170 @@
+<!doctype html>
+<html ng-app="analyserApp">
+<head>
+<meta charset="utf-8">
+<title>Analyse Process</title>
+<link href="webjars/bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet" />
+<link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css"
+	rel="stylesheet" />
+
+<link href="manager/css/angular-taglist-directive.css" rel="stylesheet" />
+<link href="resource-assignment/analyser-style.css" rel="stylesheet" />
+<style>
+html,body {
+	min-width: 1200px;
+}
+
+body {
+	padding-top: 60px;
+	/* 60px to make the container go all the way to the bottom of the topbar */
+}
+
+.positions ul.actions {
+	display: none;
+}
+
+.positions li.liposition:hover>ul.actions {
+	display: inline;
+}
+
+.positions li.liposition {
+	margin-bottom: 1em;
+}
+
+input.templatefield,.templatefield {
+	border: 0;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+	-mox-box-shadow: none;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-color: black;
+}
+
+input.templatefield:focus,.templatefield:focus {
+	border: 1px solid rgba(82, 168, 236, 0.8);
+}
+
+input.templatefield:hover,.templatefield:hover {
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	outline: 0;
+	outline: thin dotted \9;
+}
+</style>
+<script src="webjars/jquery/1.7.2/jquery.min.js"></script>
+<script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
+<!--  <script src="webjars/angularjs/1.0.7/angular.js"></script> -->
+<script src="libs/angular.min-1.2.12.js"></script>
+<script src="webjars/angular-ui-bootstrap/0.6.0/ui-bootstrap-tpls.js"></script>
+<script src="webjars/bootstrap/2.3.2/js/bootstrap.js"></script>
+<script src="templates/process.js"></script>
+<script src="analyser/app.js"></script>
+<script src="common/modelhandler.js"></script>
+<script src="common/ng-login.js"></script>
+<script src="common/ng-navbar.js"></script>
+<script>
+	/* $('#findPP').popover({animation: true, content: "Find people who could perform an activity."});
+	$('#findPA').popover({animation: true, content: "Find the activities that could be performed by a person."});
+	$('#checkBC').popover({animation: true, content: "Check if an activity is consistent."});
+	$('#findNP').popover({animation: true, content: "Find the people who cannot perform any of the chosen activities."});
+	$('#findCA').popover({animation: true, content: "Find the activities which are critical among the chosen activities."});
+	$('#findCP').popover({animation: true, content: "Find the people who performs critical activities. "});
+	$('#findIP').popover({animation: true, content: "Find the people who are considered indispensable: The ones who performs mandatory critical activities."}); */
+
+	/* function showPopover(divid){
+		$("#" + divid).popover('show');
+	}
+	
+	function hidePopover(divid){
+		$("#" + divid).popover('hide');
+	} */
+	function runToggle(divId, aid) {
+		$("#" + divId).toggle("blind", {}, 500, changeSymbol(aid));
+	}
+
+	function changeSymbol(aid) {
+		var element = document.getElementById(aid);
+		if (element.innerHTML == '<i class="icon-plus-sign"></i>') {
+			element.innerHTML = "<i class=\"icon-minus-sign\"></i>";
+		} else {
+			element.innerHTML = "<i class=\"icon-plus-sign\"></i>";
+		}
+	}
+</script>
+</head>
+
+<body ng-controller="AnalyserCtrl">
+
+	<topbar data-context="navbar" data-title="Analyser"></topbar>
+
+	<div class="container">
+		<h2>Analyse model {{navbar.currentModel.name}}</h2>
+		<div id="newOpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="new operation modal" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3>New {{selectedOperation}} Analysis</h3>
+			</div>
+			<div class="modal-body">
+				<div id="oneActivitySelector" ng-show="showOneActivitySelector()">
+					<p>Select the activity:</p>
+					<tabset><tab ng-repeat="process in bpmnModel.processes | filter:(process.activityNames.length == 0)" heading="{{process.processName}}">
+					<label class="radio" ng-repeat="activity in process.activityNames">
+					  <input type="radio" name="optionsRadios" ng-value="activity" ng-model="selectedActivity">
+					  {{activity}}
+					</label>
+					</tab></tabset>
+				</div>
+				<div id="onePersonSelector" ng-show="showOnePersonSelector()">
+					<p>onePersonSelector</p>
+				</div>
+				<div id="multipleActivitySelector" ng-show="showMultipleActivitySelector()">
+					<p>Select a set of activities:</p>
+					<tabset><tab ng-repeat="process in bpmnModel.processes | filter:(process.activityNames.length == 0)" heading="{{process.processName}}">
+					<label class="checkbox" ng-repeat="activity in process.activityNames">
+  						<input type="checkbox" ng-value="activity" ng-model="activitySet[activity]" ng-init="activitySet[activity]=false;"> {{activity}}
+					</label>
+					
+					<a ng-click="selectAll();" style="cursor: pointer;">select all</a> <a ng-click="unselectAll();" style="cursor: pointer;">unselect all</a>
+					</tab></tabset>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    			<button class="btn btn-primary" ng-click="createNewAnalysis();">Analyse</button>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span2 well" style="background-color: #545454">
+					<button class="btn btn-small btn-block" type="button" id="findPP" ng-click="showNewOperationModal('Potential Participants');">Potential Participants</button>
+					
+					<button class="btn btn-small btn-block" type="button" id="findPA" ng-click="showNewOperationModal('Potential Activities');">Potential Activities</button>
+					<button class="btn btn-small btn-block" type="button" id="checkBC" ng-click="showNewOperationModal('Basic Consistency');">Basic Consistency</button>
+					<button class="btn btn-small btn-block" type="button" id="findNP" ng-click="showNewOperationModal('Non Paticipants');">Non Paticipants</button>
+					<button class="btn btn-small btn-block" type="button" id="findCA" ng-click="showNewOperationModal('Critical Activities');">Critical Activities</button>
+					<button class="btn btn-small btn-block" type="button" id="findCP" ng-click="showNewOperationModal('Critical Participants');">Critical Participants</button>
+					<button class="btn btn-small btn-block" type="button" id="findIP" ng-click="showNewOperationModal('Indispensable Participants');">Indispensable Participants</button>
+
+				</div>
+				<div class="span10 well" >
+					<tabset> <tab ng-repeat="operation in performedActions"  >
+						<tab-heading>
+			                {{calculateText(operation.name)}} <i class="icon-remove-circle" ng-click="removeAction(operation.id)" style="cursor: pointer;"></i>
+			            </tab-heading>
+						<div>
+							<p>Operation: {{operation.name}}</p>
+							<p>Params: {{operation.param}}</p>
+							<p>result: {{operation.result}}</p>
+						</div>
+					</tab> </tabset>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
