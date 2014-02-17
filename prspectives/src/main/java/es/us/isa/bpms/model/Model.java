@@ -255,7 +255,7 @@ public class Model implements Storeable{
         return links;
     }
 
-    private boolean hasBeenAssigned(){
+    public boolean hasBeenAssigned(){
 		boolean result = false;
 		Model m = this;
 		try {
@@ -263,6 +263,26 @@ public class Model implements Storeable{
 				JSONObject obj = m.getExtensions().getJSONObject("assignments");
 				if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
 					result = true;
+				}
+			}
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return result;
+    }
+    
+    public String getOrganization(){
+		if(!hasBeenAssigned()){
+			return null;
+		}
+		String result=null;
+		Model m = this;
+		try {
+			if(m.getExtensions().has("assignments")){
+				JSONObject obj = m.getExtensions().getJSONObject("assignments");
+				if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
+					result = obj.getString("organizationalModel");
 				}
 			}
 		} catch (JSONException e) {

@@ -59,18 +59,25 @@
 							<resourcesAsCSV>src/main/webapp</resourcesAsCSV>
 						</baseResource>
 					</webAppConfig>
-					<contextHandlers>
-						<contextHandler implementation="org.mortbay.jetty.webapp.WebAppContext">
-							<war>${basedir}/../../cristal/ral-web-analyser/target/ral-web-analyser-1.1-SNAPSHOT.war</war>
-							<contextPath>/ral-web-analyser</contextPath>
-						</contextHandler>
-					</contextHandlers>
+
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>ral-neo4j-analyser</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>organization-gson-model</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- Oryx editor -->
 		<dependency>
 			<groupId>oryx-mod</groupId>
@@ -108,7 +115,7 @@
 		</dependency>
 
 		<!-- PPINOT -->
-		
+
 		<dependency>
 			<groupId>es.us.isa.bpmn</groupId>
 			<artifactId>bpmn-model</artifactId>
@@ -215,18 +222,15 @@
 			<artifactId>spring-aop</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		
-		
+
+
 		<dependency>
 			<groupId>es.us.isa.cristal</groupId>
 			<artifactId>raci2bpmn</artifactId>
 			<version>1.1-SNAPSHOT</version>
 		</dependency>
-		<!--   <dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-core</artifactId>
-			<version>2.5.2</version>
-		</dependency> -->
+		<!-- <dependency> <groupId>net.sf.ehcache</groupId> <artifactId>ehcache-core</artifactId> 
+			<version>2.5.2</version> </dependency> -->
 
 		<!-- Authentication -->
 		<dependency>

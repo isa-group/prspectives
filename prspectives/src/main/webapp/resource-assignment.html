@@ -109,8 +109,8 @@
                         <label class="control-label">{{activity}}</label>
                         <div class="controls">
                             <input class="input-xxlarge" id="{{'input-' + activity}}" type="text" ng-blur="checkSyntax(activity,process.processName,assignments.organizationalModel);" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression" />
-                        	<div class="infoResult" id="{{'info-' + activity}}"></div>
-                        	<div id="{{'report-' + activity}}" style="display:none;"></div>
+                        	<div class="infoResult" id="{{'info-' + getIdFromName(activity)}}"></div>
+                        	<div id="{{'report-' + getIdFromName(activity)}}" style="display:none;"></div>
                         </div>
                     </div>
                 </form>

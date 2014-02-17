@@ -110,14 +110,16 @@ function AnalyserCtrl($scope, $http, $log) {
 		$log.info("analysing...");
 		   
 		try{
-			$log.info("getting user token...");
+			//$log.info("getting user token...");
 			var path = $scope.getContextPath();
-			$http.get(path + "/service/user/token").success(function(token) {
-				$log.info("user token obtained successfully...");
-				var orgUrl = path + "/service/model/" + token + "/" + $scope.assignments.organizationalModel + "/json";
-				var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
-				var operationPath = action.name.toLowerCase().replace(" ","_");
-				var url = $scope.getAnalyserPath() + "/rest/analyser/" + operationPath + "/" + $scope.bpmnModel.modelId + "/" + action.param.replace(/;/g,"%3B") + "/RESPONSIBLE?bpmn=" + bpmnUrl + "&organization=" + orgUrl;
+			//$http.get(path + "/service/user/token").success(function(token) {
+				//$log.info("user token obtained successfully...");
+				//var orgUrl = path + "/service/model/" + token + "/" + $scope.assignments.organizationalModel + "/json";
+				//var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
+				var orgId = $scope.assignments.organizationalModel;
+				var bpmnId = $scope.bpmnModel.modelId;
+				var operationPath = action.name.toLowerCase().replace(/ /g,"_");
+				var url = $scope.getAnalyserPath() + "/" + operationPath + "/" + bpmnId + "/" + action.param.replace(/;/g,"%3B") + "/RESPONSIBLE";
 				$http.get(url).success(function(data) {
 					$log.info("analyser success:" + data);
 					action.success = true;
@@ -139,7 +141,7 @@ function AnalyserCtrl($scope, $http, $log) {
 		        	$log.error(error);
 		        	action.result="Error performing the analysis.";
 		        });
-			});	
+			//});	
 		}catch(error){
 				$log.error(error);
 				action.result="Error performing the analysis.";
@@ -220,7 +222,7 @@ function AnalyserCtrl($scope, $http, $log) {
     };
     
     $scope.getAnalyserPath = function(){
-    	return window.location.origin + "/ral-web-analyser";
+    	return  $scope.getContextPath() + "/analyser";
     };
     
 };

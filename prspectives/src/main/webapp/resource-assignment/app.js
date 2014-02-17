@@ -171,24 +171,25 @@ function AssignmentCtrl($scope, $http, $log) {
 			  value=value.trim();
 			  $scope.setOldAssignmentValue(processName, activity, value);
 			$log.info("checking syntax: " + value);
-		    document.getElementById("info-" + activity).innerHTML = "<img src=\"common/loading.gif\" />";
-			document.getElementById("info-" + activity).setAttribute("class", "infoResult");
+		    document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<img src=\"common/loading.gif\" />";
+			document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "infoResult");
 			try{
 				var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
 				var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
 				var parser = new RALParser(tokens);
 				parser.expression();
-				$log.info("getting user token...");
-				var path = $scope.getContextPath();
-				$http.get(path + "/service/user/token").success(function(token) {
-					$log.info("user token obtained successfully...");
+				//$log.info("getting user token...");
+				
+				//$http.get(path + "/service/user/token").success(function(token) {
+					//$log.info("user token obtained successfully...");
 		            
-					var orgUrl = path + "/service/model/" + token + "/" + organizationId + "/json";
-					var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
-					var url = $scope.getAnalyserPath() + "/rest/analyser/check_participants_for_expression/" + $scope.bpmnModel.modelId + "/" + activity + "/RESPONSIBLE?bpmn=" + bpmnUrl + "&organization=" + orgUrl + "&expression=" + value;
+					//var orgUrl = path + "/service/model/" + token + "/" + organizationId + "/json";
+					//var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
+					var bpmnId = $scope.bpmnModel.modelId;
+					var url = $scope.getAnalyserPath() + "/check_participants_for_expression/" + bpmnId + "/" + activity + "/RESPONSIBLE?organization=" + organizationId + "&expression=" + value;
 					$http.get(url).success(function(data) {
 						$log.info("analyser success:" + data);
-						document.getElementById("info-" + activity).innerHTML = "<span>" + data.length + " potential performers found.</span><a id=\"link-"+activity+"\" onclick=\"runToggle('report-" + activity + "', 'link-"+activity+"');\"><i class=\"icon-plus-sign\"></i></a>"; 
+						document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<span>" + data.length + " potential performers found.</span><a id=\"link-"+$scope.getIdFromName(activity)+"\" onclick=\"runToggle('report-" + $scope.getIdFromName(activity) + "', 'link-"+$scope.getIdFromName(activity)+"');\"><i class=\"icon-plus-sign\"></i></a>"; 
 						var text = "";
 						for(var i=0; i<data.length; i++){
 							if(text!=""){
@@ -199,31 +200,31 @@ function AssignmentCtrl($scope, $http, $log) {
 						
 						
 						if(data.length==0){
-							document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
-							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-danger");
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-danger");
 							text = "<div style=\"padding: 15px 20px;\"><h4>Consistency failure</h4><p>This assignment is not consistent. Please, modify the assignment expression.</p></div>";
 						}else if(data.length==1){
-							document.getElementById("info-" + activity).setAttribute("class", "alert infoResult");
-							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-warning");
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-warning");
 							text = "<div style=\"padding: 15px 20px;\"><h4>Critical Task</h4><p>This task is critical. Only one potential performer found: " + text + ". Having only one potential performer is not recommendable.</p></div>";
 						}else{
-							document.getElementById("info-" + activity).setAttribute("class", "alert alert-success infoResult");
-							document.getElementById("report-" + activity).setAttribute("class", "bs-callout bs-callout-info");
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-success infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-info");
 							text = "<div style=\"padding: 15px 20px;\"><h4>Assignment checked</h4><p>Potential performers found: " + text + ".</p></div>";
 						}
 						
-						document.getElementById("report-" + activity).innerHTML = text;
+						document.getElementById("report-" + $scope.getIdFromName(activity)).innerHTML = text;
 			        }).error(function(error){
 			        	$log.error(error);
-			        	document.getElementById("info-" + activity).innerHTML = "<span>Error performing the analysis.</span>"; 
-			        	document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
+			        	document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<span>Error performing the analysis.</span>"; 
+			        	document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
 			        });
-		        });
+		        //});
 				
 			}catch(error){
 				$log.error(error);
-				document.getElementById("info-" + activity).innerHTML = "Invalid Expression!";
-				document.getElementById("info-" + activity).setAttribute("class", "alert alert-error infoResult");
+				document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "Invalid Expression!";
+				document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
 			}
 			
 			 
@@ -237,9 +238,12 @@ function AssignmentCtrl($scope, $http, $log) {
     };
     
     $scope.getAnalyserPath = function(){
-    	return window.location.origin + "/ral-web-analyser";
+    	return  $scope.getContextPath() + "/analyser";
     };
     
+    $scope.getIdFromName = function (name){
+    	return name.toLowerCase().replace(/ /g,"_");
+    };
 };
 
 
