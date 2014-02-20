@@ -1,5 +1,10 @@
 package es.us.isa.bpms.users;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
 import org.brickred.socialauth.SocialAuthManager;
 import org.brickred.socialauth.spring.bean.SocialAuthTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SocialAuthUserService implements UserService {
+	
+	private Map<String,String> tokenMap;
+	
+	public SocialAuthUserService(){
+		super();
+		tokenMap = new HashMap<String,String>();
+	}
+	
     @Autowired
     private SocialAuthTemplate socialAuthTemplate;
 
@@ -53,4 +66,26 @@ public class SocialAuthUserService implements UserService {
             }
         }
     }
+
+	@Override
+	public String getToken() {
+		String token="";
+		if(tokenMap.containsValue(this.getLoggedUser())){
+			for(Entry<String,String> e: tokenMap.entrySet()){
+				if(e.getValue().equals(this.getLoggedUser())){
+					token = e.getKey();
+					break;
+				}
+			}
+		}else{
+			token = UUID.randomUUID().toString();
+			tokenMap.put(token, this.getLoggedUser());
+		}
+		return token;
+	}
+
+	@Override
+	public String getUserByToken(String token) {
+		return tokenMap.get(token);
+	}
 }

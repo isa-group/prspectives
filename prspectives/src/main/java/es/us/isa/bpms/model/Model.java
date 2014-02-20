@@ -247,11 +247,51 @@ public class Model implements Storeable{
             links.put("editor", builder.clone().path(EditorResource.class).queryParam("id", modelId).build());
             links.put("View PPIs", basic.build("ppi-template.html", "/" + modelId));
             links.put("Resource assignment", basic.build("resource-assignment.html", "/" + modelId));
+            if(hasBeenAssigned()){
+            	links.put("Analyse", basic.build("analyser.html", "/" + modelId));
+            }
         }
 
         return links;
     }
 
+    public boolean hasBeenAssigned(){
+		boolean result = false;
+		Model m = this;
+		try {
+			if(m.getExtensions().has("assignments")){
+				JSONObject obj = m.getExtensions().getJSONObject("assignments");
+				if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
+					result = true;
+				}
+			}
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return result;
+    }
+    
+    public String getOrganization(){
+		if(!hasBeenAssigned()){
+			return null;
+		}
+		String result=null;
+		Model m = this;
+		try {
+			if(m.getExtensions().has("assignments")){
+				JSONObject obj = m.getExtensions().getJSONObject("assignments");
+				if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
+					result = obj.getString("organizationalModel");
+				}
+			}
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return result;
+    }
+    
     public Map<String, URI> createExports(UriBuilder builder) {
         Map<String, URI> exports = new HashMap<String, URI>();
 

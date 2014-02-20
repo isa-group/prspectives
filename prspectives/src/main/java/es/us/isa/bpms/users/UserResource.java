@@ -35,4 +35,10 @@ public class UserResource {
     public void logout() {
         userService.logout();
     }
+    
+    @Path("/token")
+    @GET
+    public String getToken() {
+        return userService.getToken();
+    }
 }

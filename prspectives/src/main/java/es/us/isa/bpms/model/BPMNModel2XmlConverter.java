@@ -57,6 +57,11 @@ public abstract class BPMNModel2XmlConverter implements Model2XmlConverter {
             throw new RuntimeException("Error transforming json model to XML", e);
         }
     }
+    
+    @Override
+    public StringWriter transformToXml(Model m) {
+        return transformToXml(m.getModel());
+    }
 
     public StringWriter transformToXml(BasicDiagram diagram) {
         try {

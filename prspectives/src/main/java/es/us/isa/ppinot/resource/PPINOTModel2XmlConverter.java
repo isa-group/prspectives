@@ -2,10 +2,13 @@ package es.us.isa.ppinot.resource;
 
 import de.hpi.bpmn2_0.transformation.Diagram2BpmnConverter;
 import es.us.isa.bpms.model.BPMNModel2XmlConverter;
+import es.us.isa.bpms.model.Model;
 import es.us.isa.ppinot.diagram2xml.Diagram2PPINotConverter;
 import es.us.isa.ppinot.diagram2xml.PPINotFactory;
+
 import org.oryxeditor.server.diagram.basic.BasicDiagram;
 
+import java.io.StringWriter;
 import java.util.logging.Logger;
 
 /**
@@ -37,4 +40,6 @@ public class PPINOTModel2XmlConverter extends BPMNModel2XmlConverter {
             throw new RuntimeException("Error transforming PPIs of json model to XML", e);
         }
     }
+
+	
 }

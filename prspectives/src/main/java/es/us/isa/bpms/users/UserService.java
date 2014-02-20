@@ -9,4 +9,7 @@ public interface UserService {
     public String getLoggedUser();
     public boolean isLogged();
     public void logout();
+    public String getToken();
+    public String getUserByToken(String token);
+    
 }

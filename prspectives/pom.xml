@@ -6,19 +6,19 @@
 	<name>PRspectives</name>
 	<artifactId>prspectives</artifactId>
 
-    <parent>
-    	<groupId>es.us.isa.prspectives</groupId>
-    	<version>0.1-SNAPSHOT</version>
-        <artifactId>prspectives-parent</artifactId>
-        <relativePath>..</relativePath>
-    </parent>
+	<parent>
+		<groupId>es.us.isa.prspectives</groupId>
+		<version>0.2-SNAPSHOT</version>
+		<artifactId>prspectives-parent</artifactId>
+		<relativePath>..</relativePath>
+	</parent>
 
 	<packaging>war</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<resteasy.version>2.3.5.Final</resteasy.version>
-		<spring.version>3.2.0.RELEASE</spring.version>
+		<spring.version>4.0.0.RELEASE</spring.version>
 	</properties>
 
 	<build>
@@ -39,12 +39,12 @@
 				<artifactId>maven-jetty-plugin</artifactId>
 				<version>6.1.24</version>
 				<configuration>
-                    <systemProperties>
-                        <systemProperty>
-                            <name>org.mortbay.jetty.Request.maxFormContentSize</name>
-                            <value>-1</value> <!-- or any other value -1 is for max -->
-                        </systemProperty>
-                    </systemProperties>
+					<systemProperties>
+						<systemProperty>
+							<name>org.mortbay.jetty.Request.maxFormContentSize</name>
+							<value>-1</value> <!-- or any other value -1 is for max -->
+						</systemProperty>
+					</systemProperties>
 					<stopPort>9966</stopPort>
 					<stopKey>bpmn-editor</stopKey>
 					<!-- Redeploy every x seconds if changes are detected, 0 for no automatic 
@@ -59,83 +59,97 @@
 							<resourcesAsCSV>src/main/webapp</resourcesAsCSV>
 						</baseResource>
 					</webAppConfig>
+
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>ral-neo4j-analyser</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>organization-gson-model</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- Oryx editor -->
 		<dependency>
-		    <groupId>oryx-mod</groupId>
-		    <artifactId>oryx-editor-js</artifactId>
+			<groupId>oryx-mod</groupId>
+			<artifactId>oryx-editor-js</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>oryx-mod</groupId>
-            <artifactId>oryx-editor-diagram</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>oryx-mod</groupId>
-            <artifactId>oryx-editor-bpmn20</artifactId>
-        </dependency>		
+		<dependency>
+			<groupId>oryx-mod</groupId>
+			<artifactId>oryx-editor-diagram</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>oryx-mod</groupId>
+			<artifactId>oryx-editor-bpmn20</artifactId>
+		</dependency>
 
-        <!-- WebJars dependencies -->
+		<!-- WebJars dependencies -->
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>angularjs</artifactId>
-		    <version>1.0.7</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>angularjs</artifactId>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>angular-ui-bootstrap</artifactId>
-		    <version>0.6.0-1</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>angular-ui-bootstrap</artifactId>
+			<version>0.6.0-1</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>jquery</artifactId>
-		    <version>1.7.2</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>1.7.2</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>bootstrap</artifactId>
-		    <version>2.3.2</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>2.3.2</version>
 		</dependency>
 
 		<!-- PPINOT -->
+
 		<dependency>
 			<groupId>es.us.isa.bpmn</groupId>
 			<artifactId>bpmn-model</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>es.us.isa.ppinot</groupId>
-            <artifactId>ppinot-model</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.us.isa.ppinot</groupId>
-            <artifactId>ppinot-oryx</artifactId>
-        </dependency>
-        <dependency>
-        	<groupId>es.us.isa.ppinot</groupId>
-        	<artifactId>ppinot-templates-angular</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>es.us.isa.ppinot</groupId>
+			<artifactId>ppinot-model</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.us.isa.ppinot</groupId>
+			<artifactId>ppinot-oryx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.us.isa.ppinot</groupId>
+			<artifactId>ppinot-templates-angular</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
 
-		<!--  Resteasy dependencies  -->
+
+		<!-- Resteasy dependencies -->
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxrs</artifactId>
@@ -203,42 +217,51 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
 
-        <!-- Authentication -->
-        <dependency>
-            <groupId>org.brickred</groupId>
-            <artifactId>socialauth</artifactId>
-            <version>4.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.brickred</groupId>
-            <artifactId>socialauth-spring</artifactId>
-            <version>2.3</version>
-        </dependency>
 
-        <!-- SVG to PDF, PNG transformers -->
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-transcoder</artifactId>
-            <version>1.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-codec</artifactId>
-            <version>1.7</version>
-        </dependency>
+		<dependency>
+			<groupId>es.us.isa.cristal</groupId>
+			<artifactId>raci2bpmn</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+		<!-- <dependency> <groupId>net.sf.ehcache</groupId> <artifactId>ehcache-core</artifactId> 
+			<version>2.5.2</version> </dependency> -->
 
-    </dependencies>
+		<!-- Authentication -->
+		<dependency>
+			<groupId>org.brickred</groupId>
+			<artifactId>socialauth</artifactId>
+			<version>4.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.brickred</groupId>
+			<artifactId>socialauth-spring</artifactId>
+			<version>2.3</version>
+		</dependency>
+
+		<!-- SVG to PDF, PNG transformers -->
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-transcoder</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+			<version>1.7</version>
+		</dependency>
+
+	</dependencies>
 
 </project>

@@ -1,3 +1,8 @@
+window.alertProxy = window.alert;
+window.alert = function(message){
+	throw message;
+};
+
 angular.module('ralApp', ['navbarModule','loginModule','ui.bootstrap'])
 .filter('array', function() {
   return function(items) {
@@ -19,6 +24,8 @@ function AssignmentCtrl($scope, $http, $log) {
         "informed": "I"
     };
 
+	
+    
     $scope.rasciCell = null;
 
     $scope.loadCell = function(data) {
@@ -38,7 +45,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         $scope.rasciCell = cell;
-    }
+    };
 
     $scope.saveCell = function(cell) {
         var assign = cell.assign;
@@ -57,7 +64,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         $scope.rasciCell = null;
-    }
+    };
 
     $scope.depict = function(data) {
         var result = [];
@@ -68,7 +75,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         return result.join(" / ");
-    }
+    };
 
     $scope.depictDetails = function(data) {
         var result = [];
@@ -79,7 +86,7 @@ function AssignmentCtrl($scope, $http, $log) {
         });
 
         return result.join("<br/>");
-    }
+    };
 
     $scope.load = function(currentModel) {
         $scope.bpmnModel = new BPMNModel(currentModel.modelId, currentModel.url);
@@ -95,10 +102,19 @@ function AssignmentCtrl($scope, $http, $log) {
                 }
                 $scope.raw = data;
                 $scope.assignments = data.extensions.assignments;
-
+                var timeMillis = 10;
                 angular.forEach($scope.bpmnModel.processes, function(p, id) {
-                    if (! $scope.assignments[p.processName])
+                	
+                    if (! $scope.assignments[p.processName]){
                         $scope.assignments[p.processName] = {ralAssignment: {}, rasciAssignment: {}};
+                    }else{
+                    	angular.forEach($scope.assignments[p.processName].ralAssignment, function(ax, aid) {
+	                    	window.setTimeout(function() {
+	                    		  $scope.checkSyntax(aid,p.processName,$scope.assignments.organizationalModel);
+	                    		  timeMillis += 100;
+	                    	}, timeMillis);
+                    	});
+                    }
                 });
             });
         });
@@ -114,7 +130,7 @@ function AssignmentCtrl($scope, $http, $log) {
         $http.get($scope.navbar.models[modelId].url+"/json").success(function(data) {
             $scope.organization = data.model;
         });
-    }
+    };
 
     $scope.$watch("navbar.currentModel", function(currentModel, oldModel) {
         $log.info("Current model: " + currentModel);
@@ -127,6 +143,107 @@ function AssignmentCtrl($scope, $http, $log) {
         $log.info("Saving model...");
         $log.info($scope.raw);
         $http.put($scope.navbar.currentModel.url+"/json", $scope.raw);
-    }
+    };
+    
+    $scope.getOldAssignmentValue = function(processName,activity){
+    	var result = "";
+    	if($scope.oldAssignments && $scope.oldAssignments[processName] && $scope.oldAssignments[processName].ralAssignment[activity]){
+    		 result = $scope.oldAssignments[processName].ralAssignment[activity];
+    	}
+    	return result;
+    };
+    
+    $scope.setOldAssignmentValue = function(processName,activity, value){
+    	if($scope.oldAssignments==null){
+    		$scope.oldAssignments = new Array();
+    	}
+    	if($scope.oldAssignments[processName]==null){
+    		$scope.oldAssignments[processName] = {ralAssignment: new Array()};
+    	}
+    	$scope.oldAssignments[processName].ralAssignment[activity] = value;
+    };
+    
+    $scope.checkSyntax = function(activity, processName, organizationId){
 
-}
+    	var value = $scope.assignments[processName].ralAssignment[activity];
+    	var oldValue = $scope.getOldAssignmentValue(processName, activity);
+		  if(value && value.trim()!=oldValue) {
+			  value=value.trim();
+			  $scope.setOldAssignmentValue(processName, activity, value);
+			$log.info("checking syntax: " + value);
+		    document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<img src=\"common/loading.gif\" />";
+			document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "infoResult");
+			try{
+				var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
+				var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
+				var parser = new RALParser(tokens);
+				parser.expression();
+				//$log.info("getting user token...");
+				
+				//$http.get(path + "/service/user/token").success(function(token) {
+					//$log.info("user token obtained successfully...");
+		            
+					//var orgUrl = path + "/service/model/" + token + "/" + organizationId + "/json";
+					//var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
+					var bpmnId = $scope.bpmnModel.modelId;
+					var url = $scope.getAnalyserPath() + "/check_participants_for_expression/" + bpmnId + "/" + activity + "/RESPONSIBLE?organization=" + organizationId + "&expression=" + value;
+					$http.get(url).success(function(data) {
+						$log.info("analyser success:" + data);
+						document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<span>" + data.length + " potential performers found.</span><a id=\"link-"+$scope.getIdFromName(activity)+"\" onclick=\"runToggle('report-" + $scope.getIdFromName(activity) + "', 'link-"+$scope.getIdFromName(activity)+"');\"><i class=\"icon-plus-sign\"></i></a>"; 
+						var text = "";
+						for(var i=0; i<data.length; i++){
+							if(text!=""){
+								text+=", ";
+							}
+							text+=data[i];
+						}
+						
+						
+						if(data.length==0){
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-danger");
+							text = "<div style=\"padding: 15px 20px;\"><h4>Consistency failure</h4><p>This assignment is not consistent. Please, modify the assignment expression.</p></div>";
+						}else if(data.length==1){
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-warning");
+							text = "<div style=\"padding: 15px 20px;\"><h4>Critical Task</h4><p>This task is critical. Only one potential performer found: " + text + ". Having only one potential performer is not recommendable.</p></div>";
+						}else{
+							document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-success infoResult");
+							document.getElementById("report-" + $scope.getIdFromName(activity)).setAttribute("class", "bs-callout bs-callout-info");
+							text = "<div style=\"padding: 15px 20px;\"><h4>Assignment checked</h4><p>Potential performers found: " + text + ".</p></div>";
+						}
+						
+						document.getElementById("report-" + $scope.getIdFromName(activity)).innerHTML = text;
+			        }).error(function(error){
+			        	$log.error(error);
+			        	document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<span>Error performing the analysis.</span>"; 
+			        	document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
+			        });
+		        //});
+				
+			}catch(error){
+				$log.error(error);
+				document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "Invalid Expression!";
+				document.getElementById("info-" + $scope.getIdFromName(activity)).setAttribute("class", "alert alert-error infoResult");
+			}
+			
+			 
+		  }
+    };
+    
+    $scope.getContextPath = function(){
+    	var path = window.location.origin;
+    	path += window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
+    	return path;
+    };
+    
+    $scope.getAnalyserPath = function(){
+    	return  $scope.getContextPath() + "/analyser";
+    };
+    
+    $scope.getIdFromName = function (name){
+    	return name.toLowerCase().replace(/ /g,"_");
+    };
+};
+
+

@@ -1,0 +1,221 @@
+<!doctype html>
+<html ng-app="analyserApp">
+<head>
+<meta charset="utf-8">
+<title>Analyse Process</title>
+<link href="webjars/bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet" />
+<link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css"
+	rel="stylesheet" />
+
+<link href="manager/css/angular-taglist-directive.css" rel="stylesheet" />
+<link href="resource-assignment/analyser-style.css" rel="stylesheet" />
+<style>
+html,body {
+	min-width: 1200px;
+}
+
+body {
+	padding-top: 60px;
+	/* 60px to make the container go all the way to the bottom of the topbar */
+}
+.tabcontent{
+	background-color: #ffffff;
+	border: 1px solid #ddd;
+	border-top: 0px;
+	padding: 15px;
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+}
+.operationsHeader{
+	color: #FFFFFF;
+	padding-left: 10px;
+	margin-bottom: 10px !important;
+	font-style: italic;
+	font-weight: bold;
+}
+.operationsMenu{
+	font-size:12px;
+	color:#EEEEEE;
+	
+}
+
+.operationsMenu li a{
+	color: #EEEEEE !important;
+	border-left:0px !important;
+	border-right:0px !important;
+	border-top: 1px solid #858585 !important;
+	border-bottom: 1px solid #858585 !important;
+	border-radius: 0px !important;
+	cursor: pointer;
+	padding: 5px 10px;
+}
+
+.operationsMenu li a:HOVER{
+	/*  background-color: #0088cc !important;  to use the blue of bootstrap*/
+	background-color: #858585 !important;
+	color:#ffffff !important;
+}
+.positions ul.actions {
+	display: none;
+}
+
+.positions li.liposition:hover>ul.actions {
+	display: inline;
+}
+
+.positions li.liposition {
+	margin-bottom: 1em;
+}
+
+input.templatefield,.templatefield {
+	border: 0;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+	-mox-box-shadow: none;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-color: black;
+}
+
+input.templatefield:focus,.templatefield:focus {
+	border: 1px solid rgba(82, 168, 236, 0.8);
+}
+
+input.templatefield:hover,.templatefield:hover {
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	outline: 0;
+	outline: thin dotted \9;
+}
+
+#tabset ul{
+	margin:0px;
+}
+</style>
+<script src="webjars/jquery/1.7.2/jquery.min.js"></script>
+<script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
+<!--  <script src="webjars/angularjs/1.0.7/angular.js"></script> -->
+<script src="libs/angular.min-1.2.12.js"></script>
+<script src="webjars/angular-ui-bootstrap/0.6.0/ui-bootstrap-tpls.js"></script>
+<script src="webjars/bootstrap/2.3.2/js/bootstrap.js"></script>
+<script src="templates/process.js"></script>
+<script src="analyser/app.js"></script>
+<script src="common/modelhandler.js"></script>
+<script src="common/ng-login.js"></script>
+<script src="common/ng-navbar.js"></script>
+
+</head>
+
+<body ng-controller="AnalyserCtrl">
+
+	<topbar data-context="navbar" data-title="Analyser"></topbar>
+
+	<div class="container">
+		<h2 style="padding-left:22px">Analyse model {{navbar.currentModel.name}}</h2>
+		<hr />
+		<div id="newOpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="new operation modal" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3>New {{selected.operation}} Analysis</h3>
+			</div>
+			<div class="modal-body">
+				<div id="oneActivitySelector" ng-show="showOneActivitySelector()" style="padding:15px 20px;">
+					<p>Select the activity:</p>
+					<tabset><tab ng-repeat="process in bpmnModel.processes | filter:(process.activityNames.length == 0)" heading="{{process.processName}}">
+					<div style="width:50%; float:left; margin-top:10px;" ng-repeat="activity in process.activityNames">
+						<label class="radio">
+						  <input type="radio" name="optionsRadios" value="{{activity}}"ng-value="activity" ng-model="selected.activity">
+						  {{activity}}
+						</label>
+					</div>
+					</tab></tabset>
+					<div style="clear:both; margin-top:15px; float:left">Selected: {{selected.activity}}</div>
+				</div>
+				<div id="onePersonSelector" ng-show="showOnePersonSelector()" style="padding:15px 20px;">
+					<p>Select the person:</p>
+					<div style="width:50%; float:left; margin-top:10px;" ng-repeat="person in organization.persons">
+						<label class="radio">
+						  <input type="radio" name="optionsRadios" value="{{person.name}}" ng-value="person.name" ng-model="selected.person">
+						  {{person.name}}
+						</label>
+					</div>
+					<div style="clear:both; margin-top:15px; float:left">Selected: {{selected.person}}</div>
+					
+				</div>
+				<div id="multipleActivitySelector" ng-show="showMultipleActivitySelector()" style="padding:15px 20px;">
+					<p>Select a set of activities:</p>
+					<tabset><tab ng-repeat="process in bpmnModel.processes | filter:(process.activityNames.length == 0)" heading="{{process.processName}}">
+						<div style="width:50%; float:left; margin-top:10px;" ng-repeat="activity in process.activityNames" ng-init="activitySet[activity]=false;">
+							<label class="checkbox" >
+		  						<input type="checkbox" ng-value="activity" ng-model="activitySet[activity]" > {{activity}}
+							</label>
+						</div>
+						<div style="clear:both; margin-top:15px; float:left">
+							<a ng-click="selectAll();" style="cursor: pointer;">select all</a> - <a ng-click="unselectAll();" style="cursor: pointer;">unselect all</a>
+						</div>
+					</tab></tabset>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    			<button class="btn btn-primary" ng-click="createNewAnalysis();">Analyse</button>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span2 well" style="background-color: #656565; padding-left:0px; padding-right:0px">
+				
+				<ul class="nav nav-tabs nav-stacked operationsMenu">
+
+					<li class="disabled operationsHeader">Analysis Operations:</li>
+					<li><a ng-click="showNewOperationModal('Potential Participants');">Potential Participants</a></li>
+					<li><a ng-click="showNewOperationModal('Potential Activities');">Potential Activities</a></li>
+					<li><a ng-click="showNewOperationModal('Basic Consistency');">Basic Consistency</a></li>
+					<li><a ng-click="showNewOperationModal('Non Participants');">Non Participants</a></li>
+					<li><a ng-click="showNewOperationModal('Critical Activities');">Critical Activities</a></li>
+					<li><a ng-click="showNewOperationModal('Critical Participants');">Critical Participants</a></li>
+					<li><a ng-click="showNewOperationModal('Indispensable Participants');">Indispensable Part.</a></li>
+				</ul>
+				</div>
+				<div class="span10 well" >
+					<tabset ng-show="performedActions.length>0" id="tabset"> <tab ng-repeat="operation in performedActions">
+						<tab-heading>
+			                {{calculateText(operation.name)}} <i class="icon-remove-circle" ng-click="removeAction(operation.id)" style="cursor: pointer;"></i>
+			            </tab-heading>
+						<div class="tabcontent">
+							<div>
+								<h4>{{operation.name}} for {{operation.param}}</h4>
+								<em>{{operationInfo[operation.name].description}}</em>
+							</div>
+							<div ng-show="operation.result=='waiting'" style="margin-top:20px;">
+								<p>
+									<img src="common/loader/bluebar.gif" />
+								</p>
+								
+							</div>
+							<div ng-show="operation.result!='waiting'">
+								<div class="bs-callout bs-callout-danger" ng-show="operation.success==false" style="max-width:100%; padding: 20px 30px; margin-top:15px;">
+									<h4>Error</h4>
+									{{operation.result}}
+								</div>
+								<div class="bs-callout bs-callout-info" ng-show="operation.success==true" style="max-width:100%; padding: 20px 30px; margin-top:15px;">
+									<h4>Analysis result</h4>
+									<p ng-show="operation.result!=''">{{operation.result}}</p>
+									<p ng-show="operation.result==''">0 results found.</p>
+								</div>
+							</div>
+						</div>
+					</tab> </tabset>
+					<div ng-show="performedActions.length==0">
+						Create a new Analysis
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
