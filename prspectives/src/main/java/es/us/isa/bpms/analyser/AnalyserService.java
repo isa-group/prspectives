@@ -21,6 +21,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.impl.util.StringLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import es.us.isa.bpms.model.ConverterHelper;
@@ -153,20 +154,34 @@ public class AnalyserService {
 		return getAnalyser (processId, modelId, null, null);
 	}
 	
-	private RALAnalyser getAnalyser(String processId, String modelId, String organizationId, String ralExpr) throws Exception {
-		
+	private  RALAnalyser getAnalyser(String processId, String modelId, String organizationId, String ralExpr) throws Exception {
+		String context = organizationId==null? "analyser" : "assignment";
 		//System.out.println("CREATE NEW ANALYZER:" + ralExpr);
 		
-		Model m = modelRepository.getModel(modelId);
-		
-		String bpmn = converterHelper.createAndStoreXml(m);
-		System.out.println(bpmn);
+		Model m = getModel(context, modelId);
+		//System.out.println(bpmn);
 		String orgId = organizationId==null? m.getOrganization() : organizationId;
 		
-		InputStream is = modelRepository.getModelReader(orgId);
+		String bpmn = getBpmn(m,context, modelId);
+		
+		ExecutionEngine engine = getExecutionEngine(orgId);
+
+		BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, ralExpr);
+		Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, processId);
+
+		
+		
+		return analyzer;
+	}
+    
+	@Cacheable(value = "modelCache", key = "#organizationId")
+    private ExecutionEngine getExecutionEngine(String organizationId){
+		System.out.println("-------------- LOAD EXEC ENGINE: " + organizationId);
+		
+    	InputStream is = modelRepository.getModelReader(organizationId);
 		
 		String organization = IOUtil.convertStreamToString(is);
-		System.out.println(organization);
+		//System.out.println(organization);
 		Document doc = Document.importFromJson(organization);
 		ExecutionEngine engine;
 		
@@ -178,15 +193,20 @@ public class AnalyserService {
 		.newGraphDatabase();
 		engine = new ExecutionEngine( graphDb,StringLogger.logger(new File(dirName + File.separator + "log.log")) );
 		engine.execute(doc.getCypherCreateQuery());
-
-		BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, ralExpr);
-		Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, processId);
-
 		
-		
-		return analyzer;
-	}
-    
-    
+		return engine;
+    }
+ 
+	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
+    private String getBpmn(Model m, String context, String modelId){
+    	System.out.println("-------------- LOAD BPMN: " + modelId);
+		return converterHelper.createAndStoreXml(m);
+    }
+	
+	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
+    private Model getModel(String context, String modelId){
+    	System.out.println("-------------- LOAD MODEL: " + modelId);
+    	return modelRepository.getModel(modelId);
+    }
     
 }

@@ -84,4 +84,6 @@
         <constructor-arg value="index.html" />
         <constructor-arg value="index.html" />
     </bean>
+    
+    <import resource="classpath:cacheConfig.xml" />
 </beans>

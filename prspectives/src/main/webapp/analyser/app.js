@@ -28,12 +28,14 @@ function AnalyserCtrl($scope, $http, $log) {
 	$scope.performedActions = [];
 	$scope.selected = {person: "", activity:"", operation:""};
 	$scope.activitySet = new Array();
+
 	window.scope = $scope;
 	$scope.selectAll = function (){
 		for(var x in $scope.activitySet){
 			$scope.activitySet[x]=true;
 		}
 	};
+
 	
 	$scope.unselectAll = function (){
 		for(var x in $scope.activitySet){
@@ -53,6 +55,7 @@ function AnalyserCtrl($scope, $http, $log) {
 				break;
 			}
 		}
+		
 	};
 	
 	$scope.calculateText = function(text, tabs){
@@ -73,7 +76,8 @@ function AnalyserCtrl($scope, $http, $log) {
 	
 	
 	$scope.createNewAnalysis = function(){	
-		var action = {id:$scope.nextPerformedActionId, name: $scope.selected.operation, param:$scope.getParamString(), success:false, result:"waiting"};
+		var action = {id:$scope.nextPerformedActionId, active: true, name: $scope.selected.operation, param:$scope.getParamString(), success:false, result:"waiting"};
+		
 		$("#newOpModal").modal('hide');
 		$scope.performedActions[$scope.performedActions.length] = action;
 		$scope.nextPerformedActionId++;
