@@ -29,7 +29,7 @@ function AnalyserCtrl($scope, $http, $log) {
 	$scope.selected = {person: "", activity:"", operation:""};
 	$scope.activitySet = new Array();
 
-	window.scope = $scope;
+	
 	$scope.selectAll = function (){
 		for(var x in $scope.activitySet){
 			$scope.activitySet[x]=true;
@@ -123,7 +123,7 @@ function AnalyserCtrl($scope, $http, $log) {
 				var orgId = $scope.assignments.organizationalModel;
 				var bpmnId = $scope.bpmnModel.modelId;
 				var operationPath = action.name.toLowerCase().replace(/ /g,"_");
-				var url = $scope.getAnalyserPath() + "/" + operationPath + "/" + bpmnId + "/" + action.param.replace(/;/g,"%3B") + "/RESPONSIBLE";
+				var url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + action.param.replace(/;/g,"%3B") + "/" + operationPath + "?duty=RESPONSIBLE";
 				$http.get(url).success(function(data) {
 					$log.info("analyser success:" + data);
 					action.success = true;

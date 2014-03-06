@@ -4,7 +4,9 @@ package es.us.isa.bpms.analyser;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -23,6 +25,8 @@ import org.neo4j.kernel.impl.util.StringLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import com.google.gson.Gson;
 
 import es.us.isa.bpms.model.ConverterHelper;
 import es.us.isa.bpms.model.Model;
@@ -61,66 +65,79 @@ public class AnalyserService {
     
 
     
-    @Path("/potential_participants/{processId}/{activityName}/{duty}")
+    @Path("/{processId}/{activityName}/potential_participants")
     @GET
     @Produces("application/json")
-	public Set<String> potentialParticipants(@PathParam("processId") String processId, @PathParam("activityName") String activityName, @PathParam("duty") String duty) throws Exception {
-		RALAnalyser analyser = getAnalyser(processId, processId);
-		System.out.println("DUTY:" + duty);
+	public Set<String> potentialParticipants(@PathParam("processId") String processId, @PathParam("activityName") String activityName, @QueryParam("duty") String duty, @QueryParam("organization") String organizationModelUrl, @QueryParam("assignment") String assignment) throws Exception {
+    	
+    	
+    	if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
+    	RALAnalyser analyser = getAnalyser(processId, processId, organizationModelUrl, assignment);
 		return analyser.potentialParticipants(activityName, TaskDuty.valueOf(duty));
 	}
 	
-	@Path("/check_participants_for_expression/{processId}/{activityName}/{duty}")
-	@GET
-	@Produces("application/json")
-	public Set<String> checkParticipantsForExpression(@QueryParam("expression") String expression, @PathParam("processId") String processId, @QueryParam("organization") String organizationModelUrl, @PathParam("activityName") String activityName, @PathParam("duty") String duty) throws Exception {
-		RALAnalyser analyser = getAnalyser(processId, processId, organizationModelUrl,expression);
-		Set<String> result = analyser.potentialParticipants(activityName, TaskDuty.valueOf(duty));
-		System.out.println("REUSLT: " + result);
-		return result;
-	}
 
-	@Path("/potential_activities/{processId}/{personName}/{duty}")
+	@Path("/{processId}/{personName}/potential_activities")
 	@GET @Produces("application/json")
-	public Set<String> potentialActivities(@PathParam("processId") String processId, @PathParam("personName") String personName, @PathParam("duty") String duty) throws Exception {
+	public Set<String> potentialActivities(@PathParam("processId") String processId, @PathParam("personName") String personName, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		return analyser.potentialActivities(personName, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/basic_consistency/{processId}/{activityName}/{duty}")
+	@Path("/{processId}/{activityName}/basic_consistency")
 	@GET @Produces("application/json")
-	public boolean basicConsistency(@PathParam("processId") String processId,  @PathParam("activityName") String activityName, @PathParam("duty") String duty) throws Exception {
+	public boolean basicConsistency(@PathParam("processId") String processId,  @PathParam("activityName") String activityName, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		return analyser.basicConsistency(activityName, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/non_participants/{processId}/{activities}/{duty}")
+	@Path("/{processId}/{activities}/non_participants")
 	@GET @Produces("application/json")
-	public Set<String> nonParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @PathParam("duty") String duty) throws Exception {
+	public Set<String> nonParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		List<String> acts = getActivities(activities);
 		return analyser.nonParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/permanent_participants/{processId}/{activities}/{duty}")
+	@Path("/{processId}/{activities}/permanent_participants")
 	@GET @Produces("application/json")
-	public Set<String> permanentParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @PathParam("duty") String duty) throws Exception {
+	public Set<String> permanentParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		List<String> acts = getActivities(activities);
 		return analyser.permanentParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/critical_activities/{processId}/{activities}/{duty}")
+	@Path("/{processId}/{activities}/critical_activities")
 	@GET @Produces("application/json")
-	public Set<String> criticalActivities(@PathParam("processId") String processId, @PathParam("activities") String activities, @PathParam("duty") String duty) throws Exception {
+	public Set<String> criticalActivities(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		List<String> acts = getActivities(activities);
 		return analyser.criticalActivities(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/critical_participants/{processId}/{activities}/{duty}")
+	@Path("/{processId}/{activities}/critical_participants")
 	@GET @Produces("application/json")
-	public Set<String> criticalParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @PathParam("duty") String duty) throws Exception {
+	public Set<String> criticalParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		System.out.println("----> ACTIVITIES: " + activities);
 		List<String> acts = getActivities(activities);
@@ -130,9 +147,12 @@ public class AnalyserService {
 
 	
 
-	@Path("/indispensable_participants/{processId}/{activities}/{duty}")
+	@Path("/{processId}/{activities}/indispensable_participants")
 	@GET @Produces("application/json")
-	public Set<String> indispensableParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @PathParam("duty") String duty) throws Exception {
+	public Set<String> indispensableParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+		if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
 		List<String> acts = getActivities(activities);
 		return analyser.indispensableParticipants(acts, TaskDuty.valueOf(duty));
@@ -154,7 +174,7 @@ public class AnalyserService {
 		return getAnalyser (processId, modelId, null, null);
 	}
 	
-	private  RALAnalyser getAnalyser(String processId, String modelId, String organizationId, String ralExpr) throws Exception {
+	private  RALAnalyser getAnalyser(String processId, String modelId, String organizationId, String assignment) throws Exception {
 		String context = organizationId==null? "analyser" : "assignment";
 		//System.out.println("CREATE NEW ANALYZER:" + ralExpr);
 		
@@ -166,7 +186,10 @@ public class AnalyserService {
 		
 		ExecutionEngine engine = getExecutionEngine(orgId);
 
-		BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, ralExpr);
+		
+		Gson gson = new Gson();
+		Map<String,String> assignMap = gson.fromJson(assignment, HashMap.class);
+		BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, assignMap);
 		Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, processId);
 
 		
@@ -176,7 +199,7 @@ public class AnalyserService {
     
 	@Cacheable(value = "modelCache", key = "#organizationId")
     private ExecutionEngine getExecutionEngine(String organizationId){
-		System.out.println("-------------- LOAD EXEC ENGINE: " + organizationId);
+		
 		
     	InputStream is = modelRepository.getModelReader(organizationId);
 		
@@ -199,13 +222,12 @@ public class AnalyserService {
  
 	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
     private String getBpmn(Model m, String context, String modelId){
-    	System.out.println("-------------- LOAD BPMN: " + modelId);
 		return converterHelper.createAndStoreXml(m);
     }
 	
 	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
     private Model getModel(String context, String modelId){
-    	System.out.println("-------------- LOAD MODEL: " + modelId);
+    	
     	return modelRepository.getModel(modelId);
     }
     

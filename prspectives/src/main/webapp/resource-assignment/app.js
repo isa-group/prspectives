@@ -25,7 +25,7 @@ function AssignmentCtrl($scope, $http, $log) {
     };
 
 	
-    
+    window.scope = $scope;
     $scope.rasciCell = null;
 
     $scope.loadCell = function(data) {
@@ -186,7 +186,8 @@ function AssignmentCtrl($scope, $http, $log) {
 					//var orgUrl = path + "/service/model/" + token + "/" + organizationId + "/json";
 					//var bpmnUrl = path + "/service/model/" + token + "/" + $scope.bpmnModel.modelId + "/xml";
 					var bpmnId = $scope.bpmnModel.modelId;
-					var url = $scope.getAnalyserPath() + "/check_participants_for_expression/" + bpmnId + "/" + activity + "/RESPONSIBLE?organization=" + organizationId + "&expression=" + value;
+					var assignJson = JSON.stringify($scope.assignments[processName].ralAssignment);
+					var url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + activity + "/potential_participants?duty=RESPONSIBLE&organization=" + organizationId  + "&assignment=" + assignJson.replace(/{/g,"%7B").replace(/}/g,"%7D");
 					$http.get(url).success(function(data) {
 						$log.info("analyser success:" + data);
 						document.getElementById("info-" + $scope.getIdFromName(activity)).innerHTML = "<span>" + data.length + " potential performers found.</span><a id=\"link-"+$scope.getIdFromName(activity)+"\" onclick=\"runToggle('report-" + $scope.getIdFromName(activity) + "', 'link-"+$scope.getIdFromName(activity)+"');\"><i class=\"icon-plus-sign\"></i></a>"; 
