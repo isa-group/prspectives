@@ -24,7 +24,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.impl.util.StringLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.google.gson.Gson;
 
@@ -99,9 +98,9 @@ public class AnalyserService {
 		return analyser.basicConsistency(activityName, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/{processId}/{activities}/non_participants")
+	@Path("/{processId}/non_participants")
 	@GET @Produces("application/json")
-	public Set<String> nonParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+	public Set<String> nonParticipants(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
 		if(duty==null || duty.isEmpty()){
 			duty = "RESPONSIBLE";
 		}
@@ -110,9 +109,9 @@ public class AnalyserService {
 		return analyser.nonParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/{processId}/{activities}/permanent_participants")
+	@Path("/{processId}/permanent_participants")
 	@GET @Produces("application/json")
-	public Set<String> permanentParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+	public Set<String> permanentParticipants(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
 		if(duty==null || duty.isEmpty()){
 			duty = "RESPONSIBLE";
 		}
@@ -121,9 +120,9 @@ public class AnalyserService {
 		return analyser.permanentParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/{processId}/{activities}/critical_activities")
+	@Path("/{processId}/critical_activities")
 	@GET @Produces("application/json")
-	public Set<String> criticalActivities(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+	public Set<String> criticalActivities(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
 		if(duty==null || duty.isEmpty()){
 			duty = "RESPONSIBLE";
 		}
@@ -132,9 +131,9 @@ public class AnalyserService {
 		return analyser.criticalActivities(acts, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/{processId}/{activities}/critical_participants")
+	@Path("/{processId}/critical_participants")
 	@GET @Produces("application/json")
-	public Set<String> criticalParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+	public Set<String> criticalParticipants(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
 		if(duty==null || duty.isEmpty()){
 			duty = "RESPONSIBLE";
 		}
@@ -147,9 +146,9 @@ public class AnalyserService {
 
 	
 
-	@Path("/{processId}/{activities}/indispensable_participants")
+	@Path("/{processId}/indispensable_participants")
 	@GET @Produces("application/json")
-	public Set<String> indispensableParticipants(@PathParam("processId") String processId, @PathParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
+	public Set<String> indispensableParticipants(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty) throws Exception {
 		if(duty==null || duty.isEmpty()){
 			duty = "RESPONSIBLE";
 		}
@@ -163,7 +162,7 @@ public class AnalyserService {
 	
 	private List<String> getActivities(String activities) {
 		List<String> acts = null;
-		if(!activities.isEmpty() && !activities.equalsIgnoreCase("all")){
+		if(activities!=null && !activities.isEmpty() && !activities.equalsIgnoreCase("all")){
 			acts = Arrays.asList(activities.split(";"));
 		}
 		return acts;
