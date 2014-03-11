@@ -102,18 +102,11 @@ function AssignmentCtrl($scope, $http, $log) {
                 }
                 $scope.raw = data;
                 $scope.assignments = data.extensions.assignments;
-                var timeMillis = 10;
+                
                 angular.forEach($scope.bpmnModel.processes, function(p, id) {
                 	
                     if (! $scope.assignments[p.processName]){
                         $scope.assignments[p.processName] = {ralAssignment: {}, rasciAssignment: {}};
-                    }else{
-                    	angular.forEach($scope.assignments[p.processName].ralAssignment, function(ax, aid) {
-	                    	window.setTimeout(function() {
-	                    		  $scope.checkSyntax(aid,p.processName,$scope.assignments.organizationalModel);
-	                    		  timeMillis += 100;
-	                    	}, timeMillis);
-                    	});
                     }
                 });
             });

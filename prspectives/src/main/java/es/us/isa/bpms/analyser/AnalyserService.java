@@ -76,6 +76,27 @@ public class AnalyserService {
     	RALAnalyser analyser = getAnalyser(processId, processId, organizationModelUrl, assignment);
 		return analyser.potentialParticipants(activityName, TaskDuty.valueOf(duty));
 	}
+    
+    
+    @Path("/{processId}/potential_participants")
+    @GET
+    @Produces("application/json")
+	public Map<String,Set<String>> potentialParticipantsForMultipleActivities(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty, @QueryParam("organization") String organizationModelUrl, @QueryParam("assignment") String assignment) throws Exception {
+    	Map<String,Set<String>> resultMap = new HashMap<String,Set<String>>();
+    	if(duty==null || duty.isEmpty()){
+			duty = "RESPONSIBLE";
+		}
+    	TaskDuty td = TaskDuty.valueOf(duty);
+    	RALAnalyser analyser = getAnalyser(processId, processId, organizationModelUrl, assignment);
+    	List<String> acts = getActivities(activities);
+    	for(String activityName: acts){
+    		Set<String> res = analyser.potentialParticipants(activityName, td);
+    		resultMap.put(activityName, res);
+    	}
+    	return resultMap;
+    }
+    
+    	
 	
 
 	@Path("/{processId}/{personName}/potential_activities")
@@ -138,9 +159,7 @@ public class AnalyserService {
 			duty = "RESPONSIBLE";
 		}
 		RALAnalyser analyser = getAnalyser(processId, processId);
-		System.out.println("----> ACTIVITIES: " + activities);
 		List<String> acts = getActivities(activities);
-		System.out.println("----> LIST ACTIVITIES: " + acts);
 		return analyser.criticalParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
