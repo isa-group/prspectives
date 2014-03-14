@@ -123,7 +123,15 @@ function AnalyserCtrl($scope, $http, $log) {
 				var orgId = $scope.assignments.organizationalModel;
 				var bpmnId = $scope.bpmnModel.modelId;
 				var operationPath = action.name.toLowerCase().replace(/ /g,"_");
-				var url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + action.param.replace(/;/g,"%3B") + "/" + operationPath + "?duty=RESPONSIBLE";
+				
+				var url;
+				if(action.param.indexOf(";")==-1){
+					url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + action.param + "/" + operationPath + "?duty=RESPONSIBLE";
+				}else{
+					url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + operationPath + "?duty=RESPONSIBLE&activities=" + action.param.replace(/;/g,"%3B");
+				}
+				
+				
 				$http.get(url).success(function(data) {
 					$log.info("analyser success:" + data);
 					action.success = true;
