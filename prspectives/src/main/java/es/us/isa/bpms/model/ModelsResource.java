@@ -5,6 +5,11 @@ import es.us.isa.bpms.process.ProcessElementsResource;
 import es.us.isa.bpms.ral.RALModel2XMLConverter;
 import es.us.isa.bpms.repository.ModelRepository;
 import es.us.isa.bpms.users.UserService;
+import es.us.isa.ppinot.evaluation.Evaluation;
+import es.us.isa.ppinot.evaluation.MXMLEvaluator;
+import es.us.isa.ppinot.evaluation.PPIEvaluator;
+import es.us.isa.ppinot.model.PPI;
+import es.us.isa.ppinot.model.PPISet;
 import es.us.isa.ppinot.resource.PPINOTResource;
 
 import org.apache.batik.transcoder.AbstractTranscoder;
@@ -28,6 +33,7 @@ import javax.ws.rs.core.*;
 import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -352,6 +358,22 @@ public class ModelsResource {
     public PPINOTResource getPPIs(@PathParam("id") String id) {
         InputStream processReader = IOUtils.toInputStream(getModel(id));
         return new PPINOTResource(processReader, id, userService, converterHelper.getModel2XmlConverter(), modelRepository);
+    }
+    
+    @Path("/model/{id}/ppis/calculate")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Collection<Evaluation>> calculatePPIs(@PathParam("id") String id, String xml) {
+        InputStream processReader = IOUtils.toInputStream(getModel(id));
+        PPINOTResource resource = new PPINOTResource(processReader, id, userService, converterHelper.getModel2XmlConverter(), modelRepository);
+        Collection<PPISet> ppiSet = resource.getPPIs(id);
+        PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(xml.getBytes()));
+        PPISet ppis = (PPISet) ppiSet.toArray()[0];
+        List<Collection<Evaluation>> evaluations= new ArrayList<Collection<Evaluation>>();
+        for(PPI ppi : ppis.getPpis()) {
+        	evaluations.add(evaluator.eval(ppi));
+        }
+        return evaluations;
     }
     
    // ------------------------------ ADDED BY TOKEN
