@@ -13,7 +13,7 @@ var hasFlash = function() {
 	  if (navigator.mimeTypes["application/x-shockwave-flash"] != undefined) return true;
 	}
 	return false;
-}
+};
 	
 if (window.XMLHttpRequest) {
 	if (window.FormData) {
@@ -32,10 +32,10 @@ if (window.XMLHttpRequest) {
 						} else {
 							orig.apply(xhr, arguments);
 						}
-					}
+					};
 				})(xhr.setRequestHeader);
 				return xhr;
-			}
+			};
 		})(window.XMLHttpRequest);
 	} else {
 		window.XMLHttpRequest = (function(origXHR) {
@@ -56,22 +56,22 @@ if (window.XMLHttpRequest) {
 					return function(m, url, b) {
 						orig.apply(xhr, [m, url, b]);
 						xhr.__url = url;
-					}
+					};
 				})(xhr.open);
 				xhr.getResponseHeader = (function(orig) {
 					return function(h) {
 						return xhr.__fileApiXHR ? xhr.__fileApiXHR.getResponseHeader(h) : orig.apply(xhr, [h]);
-					}
+					};
 				})(xhr.getResponseHeader);
 				xhr.getAllResponseHeaders = (function(orig) {
 					return function() {
 						return xhr.__fileApiXHR ? xhr.__fileApiXHR.getAllResponseHeaders() : orig.apply(xhr);
-					}
+					};
 				})(xhr.getAllResponseHeaders);
 				xhr.abort = (function(orig) {
 					return function() {
 						return xhr.__fileApiXHR ? xhr.__fileApiXHR.abort() : (orig == null ? null : orig.apply(xhr));
-					}
+					};
 				})(xhr.abort);
 				xhr.setRequestHeader = (function(orig) {
 					return function(header, value) {
@@ -84,7 +84,7 @@ if (window.XMLHttpRequest) {
 						} else {
 							orig.apply(xhr, arguments);
 						}
-					}
+					};
 				})(xhr.setRequestHeader);
 
 				xhr.send = function() {

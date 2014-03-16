@@ -34,7 +34,9 @@
 	      	margin:0;
 	      }
 
-	    </style> 	        
+	    </style>
+	    <script src="uploader/angular-file-upload-shim.js"></script>	    
+	     	        
 		<script src="webjars/jquery/1.7.2/jquery.js"></script>
         <script src="webjars/angularjs/1.0.7/angular.js"></script>
         <script src="webjars/angularjs/1.0.7/angular-resource.min.js"></script>
@@ -48,7 +50,6 @@
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
         
-		<script src="uploader/angular-file-upload-html5-shim.js"></script>
 		<script src="uploader/angular-file-upload.js"></script>
 		<link href="uploader/uploader.css" rel="stylesheet">
 
@@ -119,16 +120,7 @@
 		</div>
 		<div id="uploadDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
 			<div ng-controller="MyCtrl">
-				Model object:<input type="text" ng-model="myModelObj"> <br>
-				Archivo: <input type="file" ng-file-select="onFileSelect($files)" > <br>
-				Archivos: <input type="file" ng-file-select="onFileSelect($files)" multiple> <br>
-				<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class" ng-show="dropSupported">
-					drop files here
-				</div>
-				<div ng-file-drop-available="dropSupported=true" ng-show="!dropSupported">
-					HTML5 Drop File is not supported!
-				</div>
-				<button ng-click="upload.abort()">Cancel Upload</button>
+				Log de {{navbar.currentModel.modelId}}: <input type="file" ng-file-select="onFileSelect($files)" > <br> <br>
 			</div>
 			<div class="modal-footer">
 				<a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
