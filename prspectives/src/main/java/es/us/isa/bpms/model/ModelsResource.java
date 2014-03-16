@@ -25,6 +25,8 @@ import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.fop.svg.PDFTranscoder;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.spi.BadRequestException;
 import org.jboss.resteasy.spi.NotFoundException;
 import org.jboss.resteasy.spi.UnauthorizedException;
@@ -33,6 +35,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -49,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -56,6 +60,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * User: resinas Date: 09/04/13 Time: 08:55
  */
+
 @Path("/service")
 public class ModelsResource {
 
@@ -373,13 +378,12 @@ public class ModelsResource {
 	@Path("/model/{id}/ppis/calculate")
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
-	public Collection<Collection<Evaluation>> calculatePPIs(HttpRequest request, @PathParam("id") String id) {
+	public Collection<Collection<Evaluation>> calculatePPIs(@Context HttpServletRequest request, @PathParam("id") String id, @RequestParam("file") MultipartFile file) {
 		InputStream processReader = IOUtils.toInputStream(getModel(id));
 		try {
 			if (request instanceof MultipartHttpServletRequest) {
 				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-				MultipartFile file = (MultipartFile) multipartRequest.getFiles("file");
-				InputStream input = file.getInputStream();
+				Map<String,MultipartFile> files =  multipartRequest.getFileMap();
 				// do the input processing
 			}
 		} catch (Exception e) {
