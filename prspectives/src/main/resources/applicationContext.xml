@@ -19,7 +19,11 @@
 	<context:component-scan base-package="es.us.isa.ppinot.resource" />
 	<context:component-scan base-package="es.us.isa.bpms" />
 
-
+	<!-- UploadFile -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- one of the properties available; the maximum file size in bytes -->
+		<property name="maxUploadSize" value="1000000" />
+	</bean>
 
 	<!-- Stencilsets and extensions -->
 	<mvc:resources mapping="/editor/stencilsets/**" location="classpath:/stencilsets/" />
@@ -92,12 +96,5 @@
 		<constructor-arg value="${PPINOT_BASE_URL}#{servletContext.contextPath}" />
 		<constructor-arg value="index.html" />
 		<constructor-arg value="index.html" />
-	</bean>
-
-	<!-- UploadFile -->
-	<bean id="multipartResolver"
-		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<!-- one of the properties available; the maximum file size in bytes -->
-		<property name="maxUploadSize" value="100000" />
 	</bean>
 </beans>

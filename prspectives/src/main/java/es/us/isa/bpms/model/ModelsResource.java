@@ -27,6 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.fop.svg.PDFTranscoder;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartInput;
 import org.jboss.resteasy.spi.BadRequestException;
 import org.jboss.resteasy.spi.NotFoundException;
 import org.jboss.resteasy.spi.UnauthorizedException;
@@ -37,9 +38,6 @@ import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -378,25 +376,14 @@ public class ModelsResource {
 	@Path("/model/{id}/ppis/calculate")
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
-	public Collection<Collection<Evaluation>> calculatePPIs(@Context HttpServletRequest request, @PathParam("id") String id, @RequestParam("file") MultipartFile file) {
+	public Collection<Collection<Evaluation>> calculatePPIs(@PathParam("id") String id, MultipartInput file) throws IOException {
 		InputStream processReader = IOUtils.toInputStream(getModel(id));
-		try {
-			if (request instanceof MultipartHttpServletRequest) {
-				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-				Map<String,MultipartFile> files =  multipartRequest.getFileMap();
-				// do the input processing
-			}
-		} catch (Exception e) {
-
-		}
-		// GZIPInputStream zip = new GZIPInputStream(file.getInputStream());
-		// PPINOTResource resource = new PPINOTResource(processReader, id,
-		// userService, converterHelper.getModel2XmlConverter(),
-		// modelRepository);
-		// Collection<PPISet> ppiSet = resource.getPPIs(id);
-		// PPIEvaluator evaluator = new MXMLEvaluator(new
-		// ByteArrayInputStream(zip.read(zip.).getBytes()));
-		// PPISet ppis = (PPISet) ppiSet.toArray()[0];
+		List<String> name=file.getParts().get(0).getHeaders().get("name");
+		GZIPInputStream zip = new GZIPInputStream((InputStream) file.getParts().get(0));
+		PPINOTResource resource = new PPINOTResource(processReader, id,userService, converterHelper.getModel2XmlConverter(),modelRepository);
+		Collection<PPISet> ppiSet = resource.getPPIs(id);
+//		PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(zip.read(zip.).getBytes()));
+		PPISet ppis = (PPISet) ppiSet.toArray()[0];
 		List<Collection<Evaluation>> evaluations = new ArrayList<Collection<Evaluation>>();
 		// for(PPI ppi : ppis.getPpis()) {
 		// evaluations.add(evaluator.eval(ppi));
