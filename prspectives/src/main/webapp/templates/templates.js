@@ -100,14 +100,14 @@ function MyCtrl($scope, $upload) {
       var file = $files[i];
       //var post_url = '/bpmn-editor/service/model/RFC/ppis/calculate';
       var id = $scope.$$prevSibling.navbar.currentModelId;
-      var post_url = '/bpmn-editor/service/model/'+id+'/ppis/calculate';
+      var post_url = $scope.model.url+'/ppis/calculate';
       $scope.upload = $upload.upload({
 		url: post_url,
 		data: file,
 		file: file,
 		type: "POST",
 		dataType: "xml",
-		contentType: "application/xml",
+		contentType: "multipart/form-data",
         // method: "post",
         // headers: {'headerKey': 'headerValue'},
         // withCredentials: true,

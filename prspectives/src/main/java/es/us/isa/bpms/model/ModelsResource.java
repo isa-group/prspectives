@@ -26,6 +26,7 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.fop.svg.PDFTranscoder;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartInput;
 import org.jboss.resteasy.spi.BadRequestException;
@@ -38,6 +39,8 @@ import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.google.common.collect.Lists;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +57,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 /**
  * User: resinas Date: 09/04/13 Time: 08:55
@@ -372,24 +377,52 @@ public class ModelsResource {
 		return new PPINOTResource(processReader, id, userService,
 				converterHelper.getModel2XmlConverter(), modelRepository);
 	}
-
-	@Path("/model/{id}/ppis/calculate")
-	@Produces(MediaType.APPLICATION_JSON)
+	
 	@POST
-	public Collection<Collection<Evaluation>> calculatePPIs(@PathParam("id") String id, MultipartInput file) throws IOException {
+	@Path("/model/{id}/ppis/calculate")
+	@Consumes("multipart/form-data")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Collection<Collection<Evaluation>> calculatePPIs(MultipartFormDataInput input, @PathParam("id") String id) throws IOException {
 		InputStream processReader = IOUtils.toInputStream(getModel(id));
-		List<String> name=file.getParts().get(0).getHeaders().get("name");
-		GZIPInputStream zip = new GZIPInputStream((InputStream) file.getParts().get(0));
+		Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+		List<InputPart> filePart = uploadForm.get("file");
+		List<InputPart> namePart = uploadForm.get("name");
+		InputStream inputStream = filePart.get(0).getBody(InputStream.class,null);
+		String fileName = namePart.get(0).getBodyAsString();
+		List<String> nameP = Lists.newArrayList(fileName.split("\\."));
+		String ext = nameP.get(nameP.size()-1);
+		if (ext.equals("gz") || ext.equals("zip")) {
+			inputStream = fromGzippedToBytes(inputStream);
+		}
 		PPINOTResource resource = new PPINOTResource(processReader, id,userService, converterHelper.getModel2XmlConverter(),modelRepository);
 		Collection<PPISet> ppiSet = resource.getPPIs(id);
-//		PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(zip.read(zip.).getBytes()));
+		PPIEvaluator evaluator = new MXMLEvaluator(inputStream);
 		PPISet ppis = (PPISet) ppiSet.toArray()[0];
 		List<Collection<Evaluation>> evaluations = new ArrayList<Collection<Evaluation>>();
-		// for(PPI ppi : ppis.getPpis()) {
-		// evaluations.add(evaluator.eval(ppi));
-		// }
+		for(PPI ppi : ppis.getPpis()) {
+		 evaluations.add(evaluator.eval(ppi));
+		}
 		return evaluations;
 	}
+	
+	public static InputStream fromGzippedToBytes(InputStream inputStream) throws IOException {
+        ByteArrayInputStream byteArrayInputStream = null;
+        GZIPInputStream ungzipper = null;
+        try {
+            ungzipper = new GZIPInputStream(inputStream);
+            byte[] output = new byte[inputStream.available()];
+            ungzipper.read(output);
+            byteArrayInputStream = new ByteArrayInputStream(output);
+            return byteArrayInputStream;
+        } finally {
+            if (ungzipper != null) {
+                ungzipper.close();
+            }
+            if (byteArrayInputStream != null) {
+                byteArrayInputStream.close();
+            }
+        }
+    }
 
 	// ------------------------------ ADDED BY TOKEN
 
