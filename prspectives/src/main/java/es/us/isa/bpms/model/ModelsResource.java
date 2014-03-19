@@ -23,6 +23,13 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorInputStream;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.fop.svg.PDFTranscoder;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
@@ -57,6 +64,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
@@ -392,7 +400,7 @@ public class ModelsResource {
 		List<String> nameP = Lists.newArrayList(fileName.split("\\."));
 		String ext = nameP.get(nameP.size()-1);
 		if (ext.equals("gz") || ext.equals("zip")) {
-			inputStream = fromGzippedToBytes(inputStream);
+			inputStream = fromGzippedToBytes(inputStream, ext);
 		}
 		PPINOTResource resource = new PPINOTResource(processReader, id,userService, converterHelper.getModel2XmlConverter(),modelRepository);
 		Collection<PPISet> ppiSet = resource.getPPIs(id);
@@ -405,23 +413,34 @@ public class ModelsResource {
 		return evaluations;
 	}
 	
-	public static InputStream fromGzippedToBytes(InputStream inputStream) throws IOException {
+	public static InputStream fromGzippedToBytes(InputStream inputStream, String ext) throws IOException {
         ByteArrayInputStream byteArrayInputStream = null;
-        GZIPInputStream ungzipper = null;
+        OutputStream out;
+        InputStream file = null;
         try {
-            ungzipper = new GZIPInputStream(inputStream);
-            byte[] output = new byte[inputStream.available()];
-            ungzipper.read(output);
-            byteArrayInputStream = new ByteArrayInputStream(output);
-            return byteArrayInputStream;
-        } finally {
-            if (ungzipper != null) {
-                ungzipper.close();
-            }
-            if (byteArrayInputStream != null) {
-                byteArrayInputStream.close();
-            }
-        }
+        	if (ext.equals("zip")) {
+	        	ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream("zip", inputStream); 
+	        	ZipArchiveEntry entry = (ZipArchiveEntry)in.getNextEntry();
+	        	out = new FileOutputStream("temp.mxml");
+	        	IOUtils.copy(in, out); 
+	        	file = new FileInputStream("temp.mxml");
+	        	return file;
+        	}
+        	else if (ext.equals("gz")) {
+        		CompressorInputStream in = new CompressorStreamFactory().createCompressorInputStream("gz", inputStream);
+        		out = new FileOutputStream("temp.mxml");
+        		IOUtils.copy(in, out); 
+            	file = new FileInputStream("temp.mxml");
+            	return file;
+        	}
+        } catch (ArchiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+        } catch (CompressorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return file;
     }
 
 	// ------------------------------ ADDED BY TOKEN
