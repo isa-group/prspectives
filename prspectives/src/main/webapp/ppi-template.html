@@ -6,34 +6,38 @@
 	    <link rel="stylesheet" href="webjars/bootstrap/2.3.2/css/bootstrap.css"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet">
 	    <style>
-          body {
-            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-          }
-
-          input.templatefield, .templatefield{
-	      	border: 0;
-	      	box-shadow: none;
-	      	-webkit-box-shadow: none;
-	      	-mox-box-shadow: none;
-		    margin-bottom: 0;
-		    font-size: 14px;
-            font-color: black;
-            width: 95%;
-	      }
-	      input.templatefield:focus, .templatefield:focus {
-	      	border: 1px solid rgba(82, 168, 236, 0.8);
-	      }
-	      input.templatefield:hover, .templatefield:hover{
-		    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    outline: 0;
-		    outline: thin dotted \9;
-	      }
-	      #uploadDialog .row{
-	      	margin:0;
-	      }
-
+			body {
+				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+			}
+			input.templatefield, .templatefield{
+				border: 0;
+				box-shadow: none;
+				-webkit-box-shadow: none;
+				-mox-box-shadow: none;
+				margin-bottom: 0;
+				font-size: 14px;
+				font-color: black;
+				width: 95%;
+			}
+			input.templatefield:focus, .templatefield:focus {
+				border: 1px solid rgba(82, 168, 236, 0.8);
+			}
+			input.templatefield:hover, .templatefield:hover{
+				-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				outline: 0;
+				outline: thin dotted \9;
+			}
+			#uploadDialog .row{
+				margin:0;
+			}
+			.text_modal{
+				line-height:50px;
+			}
+			.text_modal input{
+				height:20px;
+			}
 	    </style>
 	    <script src="uploader/angular-file-upload-shim.js"></script>	    
 	     	        
@@ -113,19 +117,42 @@
 					</table>	
 				</div>
 			</div>
+			<div ng-controller="MyCtrl">
+				<div id="uploadDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
+					<div class="text_modal"> Log de {{navbar.currentModel.modelId}}: <input type="file" ng-file-select="onFileSelect($files)"></div>				
+					Progress: <progress value={{progress}} max="100"></progress>					
+					<div class="modal-footer">
+						<a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
+					</div>
+				</div>
+				<div ng-repeat="medida in medidas">
+					<table class="table table-bordered">
+						<tr ng-repeat="med in medida">
+							<th>Medida:</th>
+							<td>
+								<table class="table table-bordered">
+									<tr>
+						   				<th>Value:</th>
+					   					<td>{{med.value}}</td>
+									</tr>
+									<tr>
+						   				<th>Process ID:</th>
+					   					<td>{{med.scope.processId}}</td>
+									</tr>
+									<tr>
+						   				<th>Instances:</th>
+					   					<td>{{med.scope.instances}}</td>
+									</tr>
+				   				</table>
+				   			</td>		   			
+			   			</tr>
+					</table>
+				</div>
+			</div>
 		</div>
 		<div class="well" style="text-align:right;">
 	    	<input class="btn btn-primary" type="submit" ng-click="save();" value="Save PPIs">
-	    	<a data-toggle="modal" href="#uploadDialog" class="btn btn-primary btn-large">Upload Log</a>
-		</div>
-		<div id="uploadDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
-			<div ng-controller="MyCtrl">
-				Log de {{navbar.currentModel.modelId}}: <input type="file" ng-file-select="onFileSelect($files)" > <br> <br>
-			</div>
-			<div class="modal-footer">
-				<a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
-				<a href="#" class="btn btn-primary" onclick="okClicked ();">OK</a>
-			</div>
+	    	<a data-toggle="modal" href="#uploadDialog" class="btn btn-primary">Upload Log</a>
 		</div>
 	</body>
 </html>
