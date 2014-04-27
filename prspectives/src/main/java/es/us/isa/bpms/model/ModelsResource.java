@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.collect.Lists;
+import com.sun.imageio.plugins.common.InputStreamAdapter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -402,16 +403,47 @@ public class ModelsResource {
 		if (ext.equals("gz") || ext.equals("zip")) {
 			inputStream = fromGzippedToBytes(inputStream, ext);
 		}
+		String log = getStringFromInputStream(inputStream);
 		PPINOTResource resource = new PPINOTResource(processReader, id,userService, converterHelper.getModel2XmlConverter(),modelRepository);
 		Collection<PPISet> ppiSet = resource.getPPIs(id);
-		PPIEvaluator evaluator = new MXMLEvaluator(inputStream);
 		PPISet ppis = (PPISet) ppiSet.toArray()[0];
 		List<Collection<Evaluation>> evaluations = new ArrayList<Collection<Evaluation>>();
 		for(PPI ppi : ppis.getPpis()) {
-		 evaluations.add(evaluator.eval(ppi));
+			PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(log.getBytes()));
+			evaluations.add(evaluator.eval(ppi));
 		}
 		return evaluations;
 	}
+	
+	// convert InputStream to String
+		private static String getStringFromInputStream(InputStream is) {
+	 
+			BufferedReader br = null;
+			StringBuilder sb = new StringBuilder();
+	 
+			String line;
+			try {
+	 
+				br = new BufferedReader(new InputStreamReader(is));
+				while ((line = br.readLine()) != null) {
+					sb.append(line);
+				}
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+	 
+			return sb.toString();
+	 
+		}
 	
 	public static InputStream fromGzippedToBytes(InputStream inputStream, String ext) throws IOException {
         ByteArrayInputStream byteArrayInputStream = null;
