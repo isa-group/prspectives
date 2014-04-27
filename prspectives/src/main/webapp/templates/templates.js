@@ -125,6 +125,13 @@ function MyCtrl($scope, $upload) {
 				// file is uploaded successfully
 				var medidas = angular.fromJson(data);
 				$scope.medidas = medidas;
+                for (var i=0; i<medidas.length; i++){
+                    var values = [];
+                    for (var j=0; j<medidas[i].length; j++){
+                        values.push(medidas[i][j].value);
+                    }
+                    $scope.medidas[i].values = values.toString();
+                }
 				$('#uploadDialog').modal('hide');
 			}).error(function(xhr, status, error) {
 				console.log(status);

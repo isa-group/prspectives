@@ -46,8 +46,8 @@
 				var row = $("<tr />")
 				$("#result table tbody").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
 				row.append($("<td>" + rowData.scope.instances + "</td>"));
-				row.append($("<td>" + rowData.value + "</td>"));
-				row.append($("<td>" + "[4,5]" + "</td>"));
+				row.append($("<td class='center'>" + rowData.value + "</td>"));
+				row.append($("<td class='center'>" + "[4,5]" + "</td>"));
 			};
 			function cargaSparlines () {
 				$('.inlinesparkline').sparkline('html',{width:'150', height:'30', lineWidth: 3, spotRadius:3});
@@ -101,7 +101,7 @@
 			}
 			#moreInfoDialog{
 				max-height: 80%;
-				overflow-y: scroll;
+				overflow-y: auto;
 			}
 			.graphics{
 				width: 150px;
@@ -203,7 +203,7 @@
 								<td>{{medida[medida.length-1].scope.processId}}</td>
 								<td class="center">{{medida[medida.length-1].value}}</td>
 								<td class="center">target</td>
-								<td><span class="inlinesparkline">1,4,4,7,5,9,10</span></td>
+								<td><span class="inlinesparkline">{{medida.values}}</span></td>
 								<td class="center"><a data-toggle="modal" href="#moreInfoDialog" class="btn btn-primary" onClick="modalOptions('{{medida}}')">More</a></td>
 							</tr>
 						</tbody>
