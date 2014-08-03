@@ -13,6 +13,7 @@
     <context:annotation-config />
     <context:component-scan base-package="es.us.isa.ppinot.resource"/>
     <context:component-scan base-package="es.us.isa.bpms"/>
+    <context:component-scan base-package="es.us.isa.prspectives"/>
 
 
 
@@ -26,7 +27,7 @@
     <bean id="resteasy.handlerMapping" parent="abstract.resteasy.handlerMapping">
         <property name="order" value="10"/>
         <property name="throwNotFound" value="false"/>
-    </bean>    
+    </bean>
     <!-- Necessary for socialauth authentication -->
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
         <property name="order" value="0" />
@@ -47,10 +48,7 @@
         <property name="directory" value="${PPINOT_REPOSITORY_DIRECTORY}"/>
     </bean>
 
-    <!-- XML Converter -->
-    <bean class="es.us.isa.ppinot.resource.PPINOTModel2XmlConverter">
-        <property name="bpmn20Xsd" value="/WEB-INF/xsd/BPMN20.xsd"/>
-    </bean>
+    <bean class="es.us.isa.prspectives.config.MetamodelsConfig"/>
 
     <!--   Resources  -->
     <bean id="repositoryResource" class="es.us.isa.bpms.model.ModelsResource">
@@ -58,7 +56,6 @@
     </bean>
     <bean id="editorResource" class="es.us.isa.bpms.editor.EditorResource"/>
     <bean id="userResource" class="es.us.isa.bpms.users.UserResource"/>
-
 
     <!-- Authentication -->
     <context:component-scan base-package="org.brickred.controller" />

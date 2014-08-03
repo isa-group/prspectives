@@ -1,6 +1,7 @@
 package es.us.isa.bpms.model;
 
-import es.us.isa.bpms.editor.EditorResource;
+import es.us.isa.bpms.model.metamodels.Metamodel;
+import es.us.isa.bpms.model.metamodels.MetamodelLibrary;
 import es.us.isa.bpms.repository.Storeable;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * User: resinas
@@ -17,18 +19,19 @@ import java.util.*;
  */
 public class Model implements Storeable{
 
-    public static final String BPMN20 = "BPMN 2.0";
-    public static final String ORG = "Organization";
+    private static final Logger log = Logger.getLogger(Model.class.getName());
 
-    private String name;
-    private String description;
+
     private String modelId;
+    private String name;
     private int revision;
+
+    private String description;
     private JSONObject model;
     private JSONObject extensions;
     private String xml;
     private String svg;
-    private String type;
+    private Metamodel metamodel;
 
     private Set<String> shared;
 
@@ -39,17 +42,17 @@ public class Model implements Storeable{
         this.extensions = new JSONObject();
     }
 
-    public Model(String modelId, String name, String type) {
+    public Model(String modelId, String name, Metamodel metamodel) {
         this.name = name;
         this.modelId = modelId;
-        this.type = type;
+        this.metamodel = metamodel;
         this.shared = new HashSet<String>();
 
         loadEmptyModel();
         this.extensions = new JSONObject();
     }
 
-    public void cloneFrom(Model clone) {
+    public void cloneContentFrom(Model clone) {
         this.description = clone.description;
         try {
             this.model = new JSONObject(clone.model.toString());
@@ -59,7 +62,7 @@ public class Model implements Storeable{
         }
         this.xml = clone.xml;
         this.svg = clone.svg;
-        this.type = clone.type;
+        this.metamodel = clone.metamodel;
     }
 
     @Override
@@ -73,34 +76,17 @@ public class Model implements Storeable{
         jsonModel.put("extensions", extensions);
         jsonModel.put("xml", xml);
         jsonModel.put("svg", svg);
-        jsonModel.put("type", type);
+        jsonModel.put("type", metamodel.getType());
         jsonModel.put("shared", shared);
 
         return jsonModel.toString();
     }
 
     public void loadEmptyModel() {
-        JSONObject jsonModel = new JSONObject();
-
-        if (BPMN20.equals(type)) {
-            try {
-                jsonModel.put("ssextensions", Arrays.asList("http://www.isa.us.es/ppiontology/stencilsets/extensions/bpmnppi#"));
-                JSONObject stencilset = new JSONObject();
-                stencilset.put("url", "../stencilsets/bpmn2.0/bpmn2.0.json");
-                stencilset.put("namespace", "http://b3mn.org/stencilset/bpmn2.0#");
-                jsonModel.put("stencilset", stencilset);
-                JSONObject stencil = new JSONObject();
-                stencil.put("id", "BPMNDiagram");
-                jsonModel.put("stencil", stencil);
-            } catch (JSONException e) {
-                throw new RuntimeException("Unexpected error", e);
-            }
-        }
-
-        this.setModel(jsonModel);
+        this.setModel(metamodel.createEmptyModel());
     }
 
-    public static Model createModel(JSONObject jsonModel) throws JSONException {
+    public static Model createModel(JSONObject jsonModel, MetamodelLibrary library) throws JSONException {
         if (jsonModel == null)
             throw new RuntimeException("Model could not be read");
 
@@ -131,7 +117,7 @@ public class Model implements Storeable{
             m.setSvg(jsonModel.getString("svg"));
 
         if (jsonModel.has("type"))
-            m.setType(jsonModel.getString("type"));
+            m.setMetamodel(library.getMetamodel(jsonModel.getString("type")));
 
         if (jsonModel.has("shared")) {
             JSONArray shared = jsonModel.getJSONArray("shared");
@@ -195,7 +181,25 @@ public class Model implements Storeable{
         return xml;
     }
 
-    public void setXml(String xml) {
+    public boolean updateXmlFromModel() {
+        boolean updated = false;
+
+        if (model == null) {
+            log.warning("Cannot update XML: model empty");
+        }
+        else if (metamodel.getXmlConverter() != null) {
+            try {
+                xml = metamodel.getXmlConverter().transformToXml(model).toString();
+                updated = true;
+            } catch (Exception e) {
+                log.warning(e.toString());
+            }
+        }
+
+        return updated;
+    }
+
+    private void setXml(String xml) {
         this.xml = xml;
     }
 
@@ -207,12 +211,12 @@ public class Model implements Storeable{
         this.svg = svg;
     }
 
-    public String getType() {
-        return type;
+    public Metamodel getMetamodel() {
+        return metamodel;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    private void setMetamodel(Metamodel metamodel) {
+        this.metamodel = metamodel;
     }
 
     public Set<String> getShared() {
@@ -237,35 +241,10 @@ public class Model implements Storeable{
     }
 
     public Map<String, URI> createLinks(UriBuilder builder) {
-        Map<String, URI> links = new HashMap<String, URI>();
-
-        UriBuilder basic = builder.clone().path("{html}").fragment("{id}");
-
-        if (ORG.equals(type)) {
-            links.put("editor", basic.build("organizational.html", "/" + modelId));
-        } else {
-            links.put("editor", builder.clone().path(EditorResource.class).queryParam("id", modelId).build());
-            links.put("View PPIs", basic.build("ppi-template.html", "/" + modelId));
-            links.put("Resource assignment", basic.build("resource-assignment.html", "/" + modelId));
-        }
-
-        return links;
+        return metamodel.createLinks(modelId, builder);
     }
 
     public Map<String, URI> createExports(UriBuilder builder) {
-        Map<String, URI> exports = new HashMap<String, URI>();
-
-        UriBuilder base = builder.clone().path(ModelsResource.class);
-
-        if (ORG.equals(type)) {
-            exports.put("JSON", base.clone().path(ModelsResource.class, "getModelJson").build(modelId));
-        } else {
-            exports.put("XML", base.clone().path(ModelsResource.class, "getModelXml").build(modelId));
-            exports.put("SVG", base.clone().path(ModelsResource.class, "getModelSvg").build(modelId));
-            exports.put("PNG", base.clone().path(ModelsResource.class, "getModelPng").build(modelId));
-            exports.put("PDF", base.clone().path(ModelsResource.class, "getModelPdf").build(modelId));
-        }
-
-        return exports;
+        return metamodel.createExports(modelId, builder);
     }
 }

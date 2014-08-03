@@ -4,6 +4,7 @@ import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.transformation.Bpmn2XmlConverter;
 import de.hpi.bpmn2_0.transformation.Diagram2BpmnConverter;
+import es.us.isa.bpms.model.metamodels.BpmnMetamodel;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.oryxeditor.server.diagram.basic.BasicDiagram;
@@ -32,6 +33,10 @@ public abstract class BPMNModel2XmlConverter implements Model2XmlConverter {
         this.bpmn20XsdPath = bpmn20XsdPath;
     }
 
+    public BPMNModel2XmlConverter(Resource bpmn20Xsd) {
+        setBpmn20Xsd(bpmn20Xsd);
+    }
+
     public void setBpmn20Xsd(Resource bpmn20Xsd) {
         try {
             this.bpmn20XsdPath = bpmn20Xsd.getFile().getAbsolutePath();
@@ -44,7 +49,7 @@ public abstract class BPMNModel2XmlConverter implements Model2XmlConverter {
     @Override
     public boolean canTransform(String type) {
         // For backwards compatibility, we assume that if type is not specified, then it is BPMN20
-        return type == null || Model.BPMN20.equals(type);
+        return type == null || BpmnMetamodel.BPMN20.equals(type);
     }
 
     @Override

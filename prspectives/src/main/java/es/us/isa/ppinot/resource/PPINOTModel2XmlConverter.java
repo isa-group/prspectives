@@ -5,6 +5,7 @@ import es.us.isa.bpms.model.BPMNModel2XmlConverter;
 import es.us.isa.ppinot.diagram2xml.Diagram2PPINotConverter;
 import es.us.isa.ppinot.diagram2xml.PPINotFactory;
 import org.oryxeditor.server.diagram.basic.BasicDiagram;
+import org.springframework.core.io.Resource;
 
 import java.util.logging.Logger;
 
@@ -23,6 +24,11 @@ public class PPINOTModel2XmlConverter extends BPMNModel2XmlConverter {
     }
 
     public PPINOTModel2XmlConverter(String bpmn20XsdPath) {
+        super(bpmn20XsdPath);
+        Diagram2BpmnConverter.setConstants(Diagram2PPINotConverter.getConstants());
+    }
+
+    public PPINOTModel2XmlConverter(Resource bpmn20XsdPath) {
         super(bpmn20XsdPath);
         Diagram2BpmnConverter.setConstants(Diagram2PPINotConverter.getConstants());
     }

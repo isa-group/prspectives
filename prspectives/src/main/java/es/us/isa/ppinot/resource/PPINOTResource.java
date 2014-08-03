@@ -32,13 +32,11 @@ public class PPINOTResource {
     private ModelRepository modelRepository;
     private String id;
     private InputStream processStream;
-    private es.us.isa.bpms.model.Model2XmlConverter converter;
 
-    public PPINOTResource(InputStream processStream, String id, UserService userService, es.us.isa.bpms.model.Model2XmlConverter converter, ModelRepository modelRepository) {
+    public PPINOTResource(InputStream processStream, String id, UserService userService, ModelRepository modelRepository) {
         this.processStream = processStream;
         this.id = id;
         this.userService = userService;
-        this.converter = converter;
         this.modelRepository = modelRepository;
     }
 
@@ -63,9 +61,7 @@ public class PPINOTResource {
 
             JSONObject diagramJSON = diagram.getJSON();
             m.setModel(diagramJSON);
-            if (converter.canTransform(m.getType())) {
-                m.setXml(converter.transformToXml(diagramJSON).toString());
-            }
+            m.updateXmlFromModel();
             modelRepository.saveModel(id, m);
         } catch (JSONException e) {
             log.warning("Could not load model of  " + id);

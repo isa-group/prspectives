@@ -1,6 +1,7 @@
 package es.us.isa.bpms.repository;
 
 import es.us.isa.bpms.model.Model;
+import es.us.isa.bpms.model.metamodels.MetamodelLibrary;
 import es.us.isa.bpms.users.UserService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -20,6 +21,9 @@ import java.util.logging.Logger;
 public class FileSystemRepository implements ModelRepository {
 
     private static final Logger log = Logger.getLogger(FileSystemRepository.class.toString());
+
+    @Autowired
+    private MetamodelLibrary metamodelLibrary;
 
     @Autowired
     private UserService userService;
@@ -45,7 +49,7 @@ public class FileSystemRepository implements ModelRepository {
         Model m;
 
         try {
-            m = Model.createModel(createJSONObject(getModelReader(id)));
+            m = Model.createModel(createJSONObject(getModelReader(id)), metamodelLibrary);
         } catch (Exception e) {
             throw new RuntimeException("Unable to get model " + id, e);
         }
@@ -93,7 +97,7 @@ public class FileSystemRepository implements ModelRepository {
         try {
             JSONObject jsonObject = createJSONObject(modelReader);
             if (! SharedModel.is(jsonObject)) {
-                Model m = Model.createModel(jsonObject);
+                Model m = Model.createModel(jsonObject, metamodelLibrary);
                 removeShared(m, m.getShared());
             }
             result = baseDirectory.remove(id);

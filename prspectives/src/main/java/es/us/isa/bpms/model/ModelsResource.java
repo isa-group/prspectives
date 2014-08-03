@@ -1,6 +1,7 @@
 package es.us.isa.bpms.model;
 
 
+import es.us.isa.bpms.model.metamodels.MetamodelLibrary;
 import es.us.isa.bpms.process.ProcessElementsResource;
 import es.us.isa.bpms.repository.ModelRepository;
 import es.us.isa.bpms.users.UserService;
@@ -45,7 +46,7 @@ public class ModelsResource {
     private ModelRepository modelRepository;
 
     @Autowired
-    private Model2XmlConverter model2XmlConverter;
+    private MetamodelLibrary metamodelLibrary;
 
     @Autowired
     private UserService userService;
@@ -58,7 +59,7 @@ public class ModelsResource {
         this();
         this.userService = userService;
         this.context = context;
-        model2XmlConverter = new PPINOTModel2XmlConverter(context.getRealPath("/WEB-INF/xsd/BPMN20.xsd"));
+        metamodelLibrary = new MetamodelLibrary();
     }
 
     public ModelsResource() {
@@ -103,7 +104,7 @@ public class ModelsResource {
             modelInfo.setName(m.getName());
             modelInfo.setDescription(m.getDescription());
             modelInfo.setShared(m.getShared());
-            modelInfo.setType(m.getType());
+            modelInfo.setType(m.getMetamodel().getType());
             modelInfo.setOwner(modelId.equals(m.getModelId()));
             modelInfo.setLinks(m.createLinks(uriInfo.getBaseUriBuilder()));
             modelInfo.setExport(m.createExports(uriInfo.getBaseUriBuilder()));
@@ -196,12 +197,13 @@ public class ModelsResource {
         String xml = m.getXml();
 
         if ((xml == null || xml.isEmpty())) {
-            if (model2XmlConverter.canTransform(m.getType())) {
+            if (m.updateXmlFromModel()) {
+                xml = m.getXml();
                 try {
-                    xml = createAndStoreXml(m);
+                    modelRepository.saveModel(m.getModelId(), m);
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Error while transforming model to XML", e);
-                    throw new RuntimeException("Error while transforming model to XML", e);
+                    log.warning("Error saving model");
+                    log.warning(e.toString());
                 }
             } else {
                 throw new NotFoundException("XML representation not available");
@@ -211,31 +213,11 @@ public class ModelsResource {
         return xml;
     }
 
-    private String createAndStoreXml(Model m) {
-        String xml;
-        JSONObject jsonModel = m.getModel();
-        if (jsonModel == null) {
-            throw new RuntimeException("Model not valid");
-        }
-
-        xml = model2XmlConverter.transformToXml(jsonModel).toString();
-        m.setXml(xml);
-
-        try {
-            modelRepository.saveModel(m.getModelId(), m);
-        } catch (Exception e) {
-            log.warning("Error saving model");
-            log.warning(e.toString());
-        }
-
-        return xml;
-    }
-
 
     @Path("/models")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response addNewProcess(@Context UriInfo uriInfo, ModelInfo info) {
+    public Response postModel(@Context UriInfo uriInfo, ModelInfo info) {
         checkUserLogged();
 
         Response r;
@@ -244,10 +226,10 @@ public class ModelsResource {
             throw new BadRequestException("Invalid modelId");
         }
 
-        Model model = new Model(info.getModelId(), info.getName(), info.getType());
+        Model model = new Model(info.getModelId(), info.getName(), metamodelLibrary.getMetamodel(info.getType()));
 
         if (info.hasClone()) {
-            model.cloneFrom(modelRepository.getModel(info.getCloneFrom()));
+            model.cloneContentFrom(modelRepository.getModel(info.getCloneFrom()));
         }
 
         model.setDescription(info.getDescription());
@@ -288,7 +270,7 @@ public class ModelsResource {
         Model newM;
 
         try {
-            newM = Model.createModel(new JSONObject(json));
+            newM = Model.createModel(new JSONObject(json), metamodelLibrary);
         } catch (JSONException e) {
             throw new IllegalArgumentException();
         }
@@ -317,13 +299,15 @@ public class ModelsResource {
         m.setName(name);
         m.setDescription(description);
         m.setSvg(svgXml);
-        m.setType(type);
+
+        if (m.getMetamodel().getType().equals(type)) {
+            throw new RuntimeException("The submitted model is not valid (type mismatch)");
+        }
+
         try {
             JSONObject jsonObject = new JSONObject(jsonXml);
             m.setModel(jsonObject);
-            if (model2XmlConverter.canTransform(type)) {
-                m.setXml(model2XmlConverter.transformToXml(jsonObject).toString());
-            }
+            m.updateXmlFromModel();
         } catch (JSONException e) {
             throw new RuntimeException("The submitted model is not valid", e);
         } catch (Exception e) {
@@ -383,6 +367,6 @@ public class ModelsResource {
     @Path("/model/{id}/ppis")
     public PPINOTResource getPPIs(@PathParam("id") String id) {
         InputStream processReader = IOUtils.toInputStream(getModel(id));
-        return new PPINOTResource(processReader, id, userService, model2XmlConverter, modelRepository);
+        return new PPINOTResource(processReader, id, userService, modelRepository);
     }
 }
