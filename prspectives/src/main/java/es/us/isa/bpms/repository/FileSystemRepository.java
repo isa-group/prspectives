@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -18,29 +17,17 @@ import java.util.logging.Logger;
  * Date: 09/04/13
  * Time: 09:31
  */
-public class FileSystemRepository implements ModelRepository {
+public class FileSystemRepository extends AbstractFileHandler implements ModelRepository {
 
     private static final Logger log = Logger.getLogger(FileSystemRepository.class.toString());
+    private SharedFileHandler sharedFileHandler;
 
     @Autowired
     private MetamodelLibrary metamodelLibrary;
 
-    @Autowired
-    private UserService userService;
-    private String directory;
-
-    public FileSystemRepository() {   }
-
-    public FileSystemRepository(String directory) {
-        this.directory = directory;
-    }
-
-    public String getDirectory() {
-        return directory;
-    }
-
-    public void setDirectory(String directory) {
-        this.directory = directory;
+    public FileSystemRepository(String directory, SharedFileHandler sharedFileHandler) {
+        super(directory);
+        this.sharedFileHandler = sharedFileHandler;
     }
 
 
@@ -57,11 +44,6 @@ public class FileSystemRepository implements ModelRepository {
         return m;
     }
 
-    private JSONObject createJSONObject(InputStream modelReader) throws IOException, JSONException {
-        String json = IOUtils.toString(modelReader);
-        return new JSONObject(json);
-    }
-
     @Override
     public InputStream getModelReader(String id) {
         BaseDirectory baseDirectory = createBaseDirectory();
@@ -70,8 +52,7 @@ public class FileSystemRepository implements ModelRepository {
         try {
             JSONObject jsonObject = createJSONObject(modelReader);
             if (SharedModel.is(jsonObject)) {
-                SharedModel shared = SharedModel.createFrom(jsonObject);
-                modelReader = createBaseDirectory(shared.getOwner()).getModelReader(shared.getModelId());
+                modelReader = modelReaderFromShared(id, jsonObject);
             } else {
                 modelReader = baseDirectory.getModelReader(id);
             }
@@ -79,6 +60,14 @@ public class FileSystemRepository implements ModelRepository {
             throw new RuntimeException("Unable to get model " + id, e);
         }
 
+        return modelReader;
+    }
+
+    private InputStream modelReaderFromShared(String id, JSONObject jsonSharedModel) throws JSONException, IOException {
+        InputStream modelReader;
+        Model originalModel = Model.createModel(sharedFileHandler.getOriginalJson(jsonSharedModel), metamodelLibrary);
+        Model clonedModel = originalModel.cloneWithId(id);
+        modelReader = IOUtils.toInputStream(clonedModel.getJSON());
         return modelReader;
     }
 
@@ -98,7 +87,7 @@ public class FileSystemRepository implements ModelRepository {
             JSONObject jsonObject = createJSONObject(modelReader);
             if (! SharedModel.is(jsonObject)) {
                 Model m = Model.createModel(jsonObject, metamodelLibrary);
-                removeShared(m, m.getShared());
+                sharedFileHandler.removeShared(m, m.getShared());
             }
             result = baseDirectory.remove(id);
         } catch (JSONException e) {
@@ -125,7 +114,7 @@ public class FileSystemRepository implements ModelRepository {
             try {
                 newModelFile.createNewFile();
                 saveModelToFile(model, newModelFile);
-                addShared(model, model.getShared());
+                sharedFileHandler.addShared(model, model.getShared());
 
                 result = true;
             } catch (IOException e) {
@@ -137,65 +126,32 @@ public class FileSystemRepository implements ModelRepository {
         return result;
     }
 
-    private void addShared(Model model, Set<String> shared) {
-        for (String sharedUser : shared) {
-            File file = createNewSharedFileForUser(sharedUser);
-            SharedModel sharedModel = new SharedModel(model.getModelId(), getLoggedUser());
-            saveModelToFile(sharedModel, file);
-        }
-    }
-
-    private void saveModelToFile(Storeable modelToStore, File file) {
-        try {
-            Writer writer = new FileWriter(file);
-            writer.write(modelToStore.getJSON());
-            writer.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Could not save model to file " + file.getAbsolutePath(), e);
-        }
-    }
-
-    private File createNewSharedFileForUser(String sharedUser) {
-        BaseDirectory baseDirectory = createBaseDirectory(sharedUser);
-        File file;
-        try {
-            do {
-                String id = ModelUUID.generate();
-                file = baseDirectory.getModelFile(id);
-            } while (! file.createNewFile());
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create new file", e);
-        }
-        return file;
-    }
-
     @Override
     public void saveModel(String id, Model model) {
         if (model == null)
             throw new IllegalArgumentException("Unable to save empty model");
 
         BaseDirectory baseDirectory = createBaseDirectory();
-        String modelId = id;
-        boolean needsUpdateShare = true;
+
+        if (! id.equals(model.getModelId())) {
+            throw new RuntimeException("Model id is not valid. Expected " + id + ", but found " + model.getModelId());
+        }
 
         try {
             JSONObject jsonObject = createJSONObject(baseDirectory.getModelReader(id));
+            File modelFile = null;
 
             if (SharedModel.is(jsonObject)) {
                 SharedModel shared = SharedModel.createFrom(jsonObject);
-                baseDirectory = createBaseDirectory(shared.getOwner());
-                modelId = shared.getModelId();
-                needsUpdateShare = false;
+                model = model.cloneWithId(shared.getModelId());
+                modelFile = sharedFileHandler.getOriginalFile(shared);
+            } else {
+                Model storedModel = getModel(model.getModelId());
+                sharedFileHandler.updateShared(model, storedModel);
+                modelFile = baseDirectory.getModelFile(id);
             }
 
-            if (modelId.equals(model.getModelId())) {
-                if (needsUpdateShare)
-                    updateShared(model);
-                File modelFile = baseDirectory.getModelFile(modelId);
-                saveModelToFile(model, modelFile);
-            } else {
-                throw new RuntimeException("Model id is not valid. Expected " + modelId + ", but found " + model.getModelId());
-            }
+            saveModelToFile(model, modelFile);
         } catch (IOException e) {
             log.warning(e.toString());
             throw new RuntimeException(e);
@@ -203,77 +159,5 @@ public class FileSystemRepository implements ModelRepository {
             throw new RuntimeException("The model metadata is not valid", e);
         }
     }
-
-    private void updateShared(Model model) {
-        Model storedModel = getModel(model.getModelId());
-
-        if (storedModel == null) {
-            addShared(model, model.getShared());
-        } else if ( ! model.sameSharedAs(storedModel)) {
-            addShared(model, model.differenceShared(storedModel));
-            removeShared(model, storedModel.differenceShared(model));
-        }
-    }
-
-    private void removeShared(Model model, Set<String> shared) {
-        for (String sharedUser : shared) {
-            BaseDirectory baseDirectory = createBaseDirectory(sharedUser);
-            List<String> models = baseDirectory.listModels();
-            for (String modelId : models) {
-                if (represents(baseDirectory, modelId, model)) {
-                    baseDirectory.remove(modelId);
-                }
-            }
-        }
-    }
-
-    private boolean represents(BaseDirectory baseDirectory, String modelId, Model model) {
-        boolean represents = false;
-
-        try {
-            JSONObject jsonObject = createJSONObject(baseDirectory.getModelReader(modelId));
-            if (SharedModel.is(jsonObject)) {
-                SharedModel sharedModel = SharedModel.createFrom(jsonObject);
-                if (sharedModel.represents(model.getModelId(), getLoggedUser())) {
-                    represents = true;
-                }
-            }
-        } catch (Exception e) {
-            // Ignores the model
-        }
-
-        return represents;
-    }
-
-
-    private String getLoggedUser() {
-        String email = "";
-        try {
-            email = userService.getLoggedUser();
-        } catch (Exception e) {
-            // Not logged in
-        }
-        return email;
-    }
-
-    private BaseDirectory createBaseDirectory() {
-        String email = getLoggedUser();
-        return createBaseDirectory(email);
-    }
-
-    private BaseDirectory createBaseDirectory(String email) {
-        String baseDirectory = directory;
-
-        if (email != null && !"".equals(email)) {
-            baseDirectory = baseDirectory + File.separator + email.hashCode();
-            File dir = new File(baseDirectory);
-            if (!dir.exists()) {
-                dir.mkdir();
-            }
-        }
-
-        return new BaseDirectory(baseDirectory);
-    }
-
 
 }

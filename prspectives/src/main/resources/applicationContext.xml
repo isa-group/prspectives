@@ -45,7 +45,11 @@
     <!-- Repository -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
     <bean id="modelRepository" class="es.us.isa.bpms.repository.FileSystemRepository">
-        <property name="directory" value="${PPINOT_REPOSITORY_DIRECTORY}"/>
+        <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
+        <constructor-arg ref="sharedFileHandler"/>
+    </bean>
+    <bean id="sharedFileHandler" class="es.us.isa.bpms.repository.SharedFileHandler">
+        <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
     </bean>
 
     <bean class="es.us.isa.prspectives.config.MetamodelsConfig"/>

@@ -52,6 +52,12 @@ public class Model implements Storeable{
         this.extensions = new JSONObject();
     }
 
+    public Model cloneWithId(String modelId) {
+        Model clone = new Model(modelId, this.name, this.metamodel);
+        clone.cloneContentFrom(this);
+        return clone;
+    }
+
     public void cloneContentFrom(Model clone) {
         this.description = clone.description;
         try {
@@ -149,7 +155,7 @@ public class Model implements Storeable{
         return modelId;
     }
 
-    public void setModelId(String modelId) {
+    private void setModelId(String modelId) {
         this.modelId = modelId;
     }
 

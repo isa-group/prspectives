@@ -300,7 +300,7 @@ public class ModelsResource {
         m.setDescription(description);
         m.setSvg(svgXml);
 
-        if (m.getMetamodel().getType().equals(type)) {
+        if (! m.getMetamodel().getType().equals(type)) {
             throw new RuntimeException("The submitted model is not valid (type mismatch)");
         }
 

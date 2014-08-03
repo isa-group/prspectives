@@ -1,9 +1,6 @@
 package es.us.isa.bpms.repository;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +43,7 @@ public class BaseDirectory {
         try {
             return new FileInputStream(processFile);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("Process with id: " + id + " not found ", e);
+            throw new RuntimeException("Model with id: " + id + " not found ", e);
         }
     }
 
@@ -59,6 +56,5 @@ public class BaseDirectory {
 
         return result;
     }
-
 
 }
