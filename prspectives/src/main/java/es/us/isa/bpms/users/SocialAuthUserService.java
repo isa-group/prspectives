@@ -3,6 +3,7 @@ package es.us.isa.bpms.users;
 import org.brickred.socialauth.SocialAuthManager;
 import org.brickred.socialauth.spring.bean.SocialAuthTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 /**
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
  * Time: 21:12
  */
 @Service
+@Profile("!devel")
 public class SocialAuthUserService implements UserService {
     @Autowired
     private SocialAuthTemplate socialAuthTemplate;
