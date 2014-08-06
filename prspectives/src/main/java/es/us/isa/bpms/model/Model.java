@@ -54,6 +54,7 @@ public class Model implements Storeable{
 
     public Model cloneWithId(String modelId) {
         Model clone = new Model(modelId, this.name, this.metamodel);
+        clone.setShared(new HashSet<String>(this.getShared()));
         clone.cloneContentFrom(this);
         return clone;
     }

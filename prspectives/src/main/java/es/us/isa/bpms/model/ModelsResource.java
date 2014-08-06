@@ -105,7 +105,7 @@ public class ModelsResource {
             modelInfo.setDescription(m.getDescription());
             modelInfo.setShared(m.getShared());
             modelInfo.setType(m.getMetamodel().getType());
-            modelInfo.setOwner(modelId.equals(m.getModelId()));
+            modelInfo.setOwner(!m.getShared().contains(userService.getLoggedUser()));
             modelInfo.setLinks(m.createLinks(uriInfo.getBaseUriBuilder()));
             modelInfo.setExport(m.createExports(uriInfo.getBaseUriBuilder()));
         } catch (Exception e) {
