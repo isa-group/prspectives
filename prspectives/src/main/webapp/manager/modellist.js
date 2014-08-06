@@ -28,7 +28,11 @@ var ModelList = {};
         },
 
         _addImage : function(model, container) {
-            container.append("<a class='pull-left' href='"+model.links.editor+"'><img class='media-object model-img' src='"+model.url+"/svg'/></a>");
+            var link = "";
+            if (typeof model.links.editor != "undefined" && model.links.editor != null)
+                link = "href='"+model.links.editor+"'";
+
+            container.append("<a class='pull-left' "+link+"><img class='media-object model-img' src='"+model.url+"/svg'/></a>");
         },
 
         _addTitle : function(model, container) {
