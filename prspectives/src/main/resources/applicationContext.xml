@@ -44,11 +44,11 @@
 
     <!-- Repository -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-    <bean id="modelRepository" class="es.us.isa.bpms.repository.FileSystemRepository">
-        <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
-        <constructor-arg ref="sharedFileHandler"/>
+    <bean id="modelRepository" class="es.us.isa.bpms.repository.SharedModelRepository">
+        <constructor-arg ref="sharedModelHandler"/>
     </bean>
-    <bean id="sharedFileHandler" class="es.us.isa.bpms.repository.SharedFileHandler">
+    <bean id="sharedModelHandler" class="es.us.isa.bpms.repository.SharedModelHandler"/>
+    <bean id="workspaceFactory" class="es.us.isa.bpms.repository.FileWorkspaceFactory">
         <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
     </bean>
 

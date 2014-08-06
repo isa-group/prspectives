@@ -2,7 +2,6 @@ package es.us.isa.bpms.repository;
 
 import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.model.metamodels.MetamodelLibrary;
-import es.us.isa.bpms.users.UserService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,16 +16,15 @@ import java.util.logging.Logger;
  * Date: 09/04/13
  * Time: 09:31
  */
-public class FileSystemRepository extends AbstractFileHandler implements ModelRepository {
+public class SharedModelRepository extends AbstractModelHandler implements ModelRepository {
 
-    private static final Logger log = Logger.getLogger(FileSystemRepository.class.toString());
-    private SharedFileHandler sharedFileHandler;
+    private static final Logger log = Logger.getLogger(SharedModelRepository.class.toString());
+    private SharedModelHandler sharedFileHandler;
 
     @Autowired
     private MetamodelLibrary metamodelLibrary;
 
-    public FileSystemRepository(String directory, SharedFileHandler sharedFileHandler) {
-        super(directory);
+    public SharedModelRepository(SharedModelHandler sharedFileHandler) {
         this.sharedFileHandler = sharedFileHandler;
     }
 
@@ -46,15 +44,15 @@ public class FileSystemRepository extends AbstractFileHandler implements ModelRe
 
     @Override
     public InputStream getModelReader(String id) {
-        BaseDirectory baseDirectory = createBaseDirectory();
-        InputStream modelReader = baseDirectory.getModelReader(id);
+        Workspace workspace = createUserWorkspace();
+        InputStream modelReader = workspace.getModelReader(id);
 
         try {
             JSONObject jsonObject = createJSONObject(modelReader);
             if (SharedModel.is(jsonObject)) {
                 modelReader = modelReaderFromShared(id, jsonObject);
             } else {
-                modelReader = baseDirectory.getModelReader(id);
+                modelReader = workspace.getModelReader(id);
             }
         } catch (Exception e) {
             throw new RuntimeException("Unable to get model " + id, e);
@@ -73,14 +71,14 @@ public class FileSystemRepository extends AbstractFileHandler implements ModelRe
 
     @Override
     public List<String> listModels() {
-        BaseDirectory baseDirectory = createBaseDirectory();
-        return baseDirectory.listModels();
+        Workspace workspace = createUserWorkspace();
+        return workspace.listModels();
     }
 
     @Override
     public boolean removeModel(String id) {
-        BaseDirectory baseDirectory = createBaseDirectory();
-        InputStream modelReader = baseDirectory.getModelReader(id);
+        Workspace workspace = createUserWorkspace();
+        InputStream modelReader = workspace.getModelReader(id);
         boolean result;
 
         try {
@@ -89,7 +87,7 @@ public class FileSystemRepository extends AbstractFileHandler implements ModelRe
                 Model m = Model.createModel(jsonObject, metamodelLibrary);
                 sharedFileHandler.removeShared(m, m.getShared());
             }
-            result = baseDirectory.remove(id);
+            result = workspace.remove(id);
         } catch (JSONException e) {
             log.warning(e.toString());
             throw new RuntimeException("Invalid model stored " + id, e);
@@ -104,24 +102,15 @@ public class FileSystemRepository extends AbstractFileHandler implements ModelRe
     @Override
     public boolean addModel(Model model) {
         boolean result = false;
-        BaseDirectory baseDirectory = createBaseDirectory();
+        Workspace workspace = createUserWorkspace();
 
         if (model.getModel() == null)
             model.loadEmptyModel();
 
-        File newModelFile = baseDirectory.getModelFile(model.getModelId());
-        if (!newModelFile.exists()) {
-            try {
-                newModelFile.createNewFile();
-                saveModelToFile(model, newModelFile);
-                sharedFileHandler.addShared(model, model.getShared());
-
-                result = true;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (!workspace.existsModel(model.getModelId())) {
+            result = workspace.createModel(model.getModelId(), model);
+            sharedFileHandler.addShared(model, model.getShared());
         }
-
 
         return result;
     }
@@ -131,33 +120,38 @@ public class FileSystemRepository extends AbstractFileHandler implements ModelRe
         if (model == null)
             throw new IllegalArgumentException("Unable to save empty model");
 
-        BaseDirectory baseDirectory = createBaseDirectory();
+        Workspace workspace = createUserWorkspace();
 
         if (! id.equals(model.getModelId())) {
             throw new RuntimeException("Model id is not valid. Expected " + id + ", but found " + model.getModelId());
         }
 
         try {
-            JSONObject jsonObject = createJSONObject(baseDirectory.getModelReader(id));
-            File modelFile = null;
+            JSONObject jsonObject = createJSONObject(workspace.getModelReader(id));
+            String modelId;
 
             if (SharedModel.is(jsonObject)) {
                 SharedModel shared = SharedModel.createFrom(jsonObject);
+                modelId = shared.getModelId();
                 model = model.cloneWithId(shared.getModelId());
-                modelFile = sharedFileHandler.getOriginalFile(shared);
+                workspace = sharedFileHandler.getOwnerBaseDirectory(shared);
             } else {
-                Model storedModel = getModel(model.getModelId());
-                sharedFileHandler.updateShared(model, storedModel);
-                modelFile = baseDirectory.getModelFile(id);
+                modelId = model.getModelId();
+                updateShared(model);
             }
 
-            saveModelToFile(model, modelFile);
+            workspace.save(modelId, model);
         } catch (IOException e) {
             log.warning(e.toString());
             throw new RuntimeException(e);
         } catch (JSONException e) {
             throw new RuntimeException("The model metadata is not valid", e);
         }
+    }
+
+    private void updateShared(Model model) {
+        Model storedModel = getModel(model.getModelId());
+        sharedFileHandler.updateShared(model, storedModel);
     }
 
 }
