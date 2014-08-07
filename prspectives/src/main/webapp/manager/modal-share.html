@@ -1,0 +1,25 @@
+<div class="modal-header">
+    <button type="button" class="close" data-ng-click="cancel()">×</button>
+    <h3>Share {{title}}</h3>
+</div>
+<div class="modal-body">
+    <alert data-ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+
+    <form name="shareModelForm" data-ng-submit="add()" class="form-inline" accept-charset="utf-8">
+        <label for="share">
+            Add share:
+        </label>
+        <input name="share" data-ng-model="shareName.name" class="input-xlarge" id="share" placeholder="Enter the email address" required="true" type="email">
+        <button type="submit" class="btn">Add</button>
+    </form>
+
+    <div>This model is shared with:</div>
+    <ul class="unstyled">
+        <li data-ng-show="shareName.shared.length == 0">No one</li>
+        <li data-ng-repeat="share in shareName.shared">{{share}}<a class="btn-mini" data-ng-click="removeShare($index)" tooltip="Remove share"><i class="icon-trash"></i></a></li>
+    </ul>
+</div>
+<div class="modal-footer">
+    <button class="btn" data-ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" data-ng-click="ok()">Accept</button>
+</div>

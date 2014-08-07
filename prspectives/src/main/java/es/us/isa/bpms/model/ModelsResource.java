@@ -116,21 +116,21 @@ public class ModelsResource {
         return modelInfo;
     }
 
-    @Path("/model/{id}")
-    @Produces(MediaType.APPLICATION_XML)
+    @Path("/models/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     @GET
-    public String getModel(@PathParam("id") String id) {
-        return getModelXml(id);
+    public InputStream getModel(@PathParam("id") String id) {
+        return getModelJson(id);
     }
 
-    @Path("/model/{id}/json")
+    @Path("/models/{id}/json")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public InputStream getModelJson(@PathParam("id") String id) {
         return modelRepository.getModelReader(id);
     }
 
-    @Path("/model/{id}/svg")
+    @Path("/models/{id}/svg")
     @GET
     @Produces("image/svg+xml")
     public String getModelSvg(@PathParam("id") String id) {
@@ -149,7 +149,7 @@ public class ModelsResource {
         return svg;
     }
 
-    @Path("/model/{id}/pdf")
+    @Path("/models/{id}/pdf")
     @GET
     @Produces("application/pdf")
     public InputStream getModelPdf(@PathParam("id") String id) {
@@ -158,7 +158,7 @@ public class ModelsResource {
         return transcode(id, transcoder);
     }
 
-    @Path("/model/{id}/png")
+    @Path("/models/{id}/png")
     @GET
     @Produces("image/png")
     public InputStream getModelPng(@PathParam("id") String id) {
@@ -184,7 +184,7 @@ public class ModelsResource {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    @Path("/model/{id}/xml")
+    @Path("/models/{id}/xml")
     @Produces(MediaType.APPLICATION_XML)
     @GET
     public String getModelXml(@PathParam("id") String id) {
@@ -222,7 +222,9 @@ public class ModelsResource {
 
         Response r;
 
-        if (info.getModelId() == null || ! info.getModelId().matches("\\w+")) {
+        if (info.getModelId() == null) {
+            info.setModelId(info.getName().replaceAll("\\W", ""));
+        } else if ( ! info.getModelId().matches("\\w+")) {
             throw new BadRequestException("Invalid modelId");
         }
 
@@ -245,7 +247,7 @@ public class ModelsResource {
         return r;
     }
 
-    @Path("/model/{id}")
+    @Path("/models/{id}")
     @DELETE
     public Response removeProcess(@PathParam("id") String id) {
         checkUserLogged();
@@ -259,7 +261,7 @@ public class ModelsResource {
         return r;
     }
 
-    @Path("/model/{id}/json")
+    @Path("/models/{id}/json")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PUT
@@ -326,7 +328,37 @@ public class ModelsResource {
             throw new UnauthorizedException("User not logged");
     }
 
-    @Path("/model/{id}/share")
+    @Path("/models/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PUT
+    @POST
+    public ModelInfo updateModelInfo(@Context UriInfo uriInfo, @PathParam("id") String id, ModelInfo info) {
+        log.info("Updating model info " + id);
+        checkUserLogged();
+
+        Model m = getModelOrNotFound(id);
+
+        if (!m.getModelId().equals(info.getModelId())) {
+            throw new BadRequestException("Not allowed to change modelId");
+        }
+
+        if (!m.getMetamodel().getType().equals(info.getType())) {
+            throw new BadRequestException("Not allowed to change type");
+        }
+
+        m.setName(info.getName());
+        m.setShared(info.getShared());
+        m.setDescription(info.getDescription());
+
+        modelRepository.saveModel(id, m);
+
+        return createModelInfo(info.getModelId(), uriInfo);
+
+    }
+
+
+    @Path("/models/{id}/share")
     @Produces(MediaType.APPLICATION_JSON)
     @PUT
     public List<String> updateShare(@PathParam("id") String id, List<String> shares) {
@@ -357,16 +389,16 @@ public class ModelsResource {
     }
 
 
-    @Path("/model/{id}")
+    @Path("/models/{id}")
     public ProcessElementsResource getProcessInfo(@PathParam("id") String id) {
-        InputStream processReader = IOUtils.toInputStream(getModel(id));
+        InputStream processReader = IOUtils.toInputStream(getModelXml(id));
         return new ProcessElementsResource(processReader);
     }
 
 
-    @Path("/model/{id}/ppis")
+    @Path("/models/{id}/ppis")
     public PPINOTResource getPPIs(@PathParam("id") String id) {
-        InputStream processReader = IOUtils.toInputStream(getModel(id));
+        InputStream processReader = IOUtils.toInputStream(getModelXml(id));
         return new PPINOTResource(processReader, id, userService, modelRepository);
     }
 }

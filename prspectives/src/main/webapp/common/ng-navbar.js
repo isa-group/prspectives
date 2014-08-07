@@ -1,5 +1,5 @@
-angular.module('navbarModule', ['loginModule', 'ui.bootstrap'])
-  .directive('topbar', ['$rootScope', '$location', '$http', '$window', function($rootScope, $location, $http, $window){
+angular.module('navbarModule', ['loginModule', 'prspectives.modelHandler', 'ui.bootstrap'])
+  .directive('topbar', ['$rootScope', '$location', '$http', '$window', 'Models', function($rootScope, $location, $http, $window, Models){
     return {
       restrict: 'EC',
       replace: true,
@@ -76,14 +76,15 @@ angular.module('navbarModule', ['loginModule', 'ui.bootstrap'])
         $scope.indexUrl = baseUrl + "index.html";
 
         // Loads the list of models
-        var modelsUrl = baseUrl + "service/models/";
-        $http.get(modelsUrl).success(function(data) {
+
+        Models.query(function(data) {
             $scope.navbar.models = {};
             angular.forEach(data, function(info) {
                 $scope.navbar.models[info.modelId] = info;
             });
+            //$scope.navbar.models = data;
             updateModel();
-        });
+        })
 
         $scope.openAbout = function () {
             var modalInstance = $modal.open({
@@ -99,7 +100,7 @@ angular.module('navbarModule', ['loginModule', 'ui.bootstrap'])
         }
 
         function updateModel() {
-            if ($scope.navbar.models && $scope.navbar.currentModelId) {
+            if ($scope.navbar.modelsMap && $scope.navbar.currentModelId) {
                 $scope.navbar.currentModel = $scope.navbar.models[$scope.navbar.currentModelId];
             }
         }

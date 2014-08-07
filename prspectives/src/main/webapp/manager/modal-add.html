@@ -1,0 +1,44 @@
+<div class="modal-header">
+    <button type="button" class="close" data-ng-click="cancel()">×</button>
+    <h3>{{windowTitle}}</h3>
+</div>
+<form name="addModelForm" class="form-horizontal" accept-charset="utf-8">
+    <div class="modal-body">
+        <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+
+        <div class="control-group">
+            <label for="name" class="control-label">
+                Name:
+            </label>
+            <div class="controls">
+                <input name="name" data-ng-model="info.name" id="name" placeholder="Model name (required)" required="true" type="text">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="type" class="control-label">
+                Type:
+            </label>
+            <div class="controls">
+                <select name="type" id="type" required="true" data-ng-model="info.type" data-ng-disabled="info.cloneFrom">
+                    <option value="BPMN 2.0">BPMN 2.0</option>
+                    <option value="Organization">Organization</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="description" class="control-label">
+                Description:
+            </label>
+            <div class="controls">
+                <textarea rows="6" id="description" data-ng-model="info.description" placeholder="Description of the model"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn" data-ng-click="cancel()">Cancel</button>
+        <button class="btn btn-primary" type="submit" data-ng-disabled="!addModelForm.$valid" data-ng-click="ok()">Accept</button>
+    </div>
+</form>

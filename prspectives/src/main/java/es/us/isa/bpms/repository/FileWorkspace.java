@@ -76,6 +76,7 @@ public class FileWorkspace implements Workspace {
         if (! file.exists()) {
             try {
                 file.createNewFile();
+                created = true;
             } catch (IOException e) {
                 log.warning("Model already exists " + file.getAbsolutePath());
             }
