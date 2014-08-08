@@ -116,6 +116,39 @@ public class ModelsResource {
         return modelInfo;
     }
 
+    @Path("/models")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response postModel(@Context UriInfo uriInfo, ModelInfo info) {
+        checkUserLogged();
+
+        Response r;
+
+        if (info.getModelId() == null) {
+            info.setModelId(info.getName().replaceAll("\\W", ""));
+        } else if ( ! info.getModelId().matches("\\w+")) {
+            throw new BadRequestException("Invalid modelId");
+        }
+
+        Model model = new Model(info.getModelId(), info.getName(), metamodelLibrary.getMetamodel(info.getType()));
+
+        if (info.hasClone()) {
+            model.cloneContentFrom(modelRepository.getModel(info.getCloneFrom()));
+        }
+
+        model.setDescription(info.getDescription());
+
+        if (modelRepository.addModel(model)) {
+            ModelInfo modelInfo = createModelInfo(info.getModelId(), uriInfo);
+            r = Response.ok(modelInfo, MediaType.APPLICATION_JSON_TYPE).build();
+        }
+        else {
+            r = Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return r;
+    }
+
     @Path("/models/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
@@ -123,10 +156,78 @@ public class ModelsResource {
         return getModelJson(id);
     }
 
+    @Path("/models/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PUT
+    @POST
+    public ModelInfo updateModelInfo(@Context UriInfo uriInfo, @PathParam("id") String id, ModelInfo info) {
+        log.info("Updating model info " + id);
+        checkUserLogged();
+
+        Model m = getModelOrNotFound(id);
+
+        if (!m.getModelId().equals(info.getModelId())) {
+            throw new BadRequestException("Not allowed to change modelId");
+        }
+
+        if (!m.getMetamodel().getType().equals(info.getType())) {
+            throw new BadRequestException("Not allowed to change type");
+        }
+
+        m.setName(info.getName());
+        m.setShared(info.getShared());
+        m.setDescription(info.getDescription());
+
+        modelRepository.saveModel(id, m);
+
+        return createModelInfo(info.getModelId(), uriInfo);
+
+    }
+
+    @Path("/models/{id}")
+    @DELETE
+    public Response removeProcess(@PathParam("id") String id) {
+        checkUserLogged();
+
+        Response r;
+        if (modelRepository.removeModel(id))
+            r = Response.ok().build();
+        else
+            r = Response.status(Response.Status.NOT_FOUND).build();
+
+        return r;
+    }
+
     @Path("/models/{id}/json")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public InputStream getModelJson(@PathParam("id") String id) {
+        return modelRepository.getModelReader(id);
+    }
+
+    @Path("/models/{id}/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PUT
+    public InputStream updateModel(@PathParam("id") String id, String json) {
+        checkUserLogged();
+        getModelOrNotFound(id);
+
+        Model newM;
+
+        try {
+            newM = Model.createModel(new JSONObject(json), metamodelLibrary);
+        } catch (JSONException e) {
+            throw new IllegalArgumentException();
+        }
+
+        if (!newM.getModelId().equals(id)) {
+            throw new IllegalArgumentException();
+        }
+
+        modelRepository.saveModel(id, newM);
+
         return modelRepository.getModelReader(id);
     }
 
@@ -157,6 +258,7 @@ public class ModelsResource {
 
         return transcode(id, transcoder);
     }
+
 
     @Path("/models/{id}/png")
     @GET
@@ -214,78 +316,12 @@ public class ModelsResource {
     }
 
 
-    @Path("/models")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response postModel(@Context UriInfo uriInfo, ModelInfo info) {
-        checkUserLogged();
-
-        Response r;
-
-        if (info.getModelId() == null) {
-            info.setModelId(info.getName().replaceAll("\\W", ""));
-        } else if ( ! info.getModelId().matches("\\w+")) {
-            throw new BadRequestException("Invalid modelId");
-        }
-
-        Model model = new Model(info.getModelId(), info.getName(), metamodelLibrary.getMetamodel(info.getType()));
-
-        if (info.hasClone()) {
-            model.cloneContentFrom(modelRepository.getModel(info.getCloneFrom()));
-        }
-
-        model.setDescription(info.getDescription());
-
-        if (modelRepository.addModel(model)) {
-            ModelInfo modelInfo = createModelInfo(info.getModelId(), uriInfo);
-            r = Response.ok(modelInfo, MediaType.APPLICATION_JSON_TYPE).build();
-        }
-        else {
-            r = Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        return r;
-    }
-
-    @Path("/models/{id}")
-    @DELETE
-    public Response removeProcess(@PathParam("id") String id) {
-        checkUserLogged();
-
-        Response r;
-        if (modelRepository.removeModel(id))
-            r = Response.ok().build();
-        else
-            r = Response.status(Response.Status.NOT_FOUND).build();
-
-        return r;
-    }
-
-    @Path("/models/{id}/json")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/model/{id}/json")
     @Produces(MediaType.APPLICATION_JSON)
-    @PUT
-    public InputStream updateModel(@PathParam("id") String id, String json) {
-        checkUserLogged();
-        getModelOrNotFound(id);
-
-        Model newM;
-
-        try {
-            newM = Model.createModel(new JSONObject(json), metamodelLibrary);
-        } catch (JSONException e) {
-            throw new IllegalArgumentException();
-        }
-
-        if (!newM.getModelId().equals(id)) {
-            throw new IllegalArgumentException();
-        }
-
-        modelRepository.saveModel(id, newM);
-
+    @GET
+    public InputStream getModelJsonForOryx(@PathParam("id") String id) {
         return modelRepository.getModelReader(id);
     }
-
 
     @Path("/model/{id}/json")
     @Produces(MediaType.APPLICATION_JSON)
@@ -326,35 +362,6 @@ public class ModelsResource {
     private void checkUserLogged() {
         if (! userService.isLogged())
             throw new UnauthorizedException("User not logged");
-    }
-
-    @Path("/models/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @PUT
-    @POST
-    public ModelInfo updateModelInfo(@Context UriInfo uriInfo, @PathParam("id") String id, ModelInfo info) {
-        log.info("Updating model info " + id);
-        checkUserLogged();
-
-        Model m = getModelOrNotFound(id);
-
-        if (!m.getModelId().equals(info.getModelId())) {
-            throw new BadRequestException("Not allowed to change modelId");
-        }
-
-        if (!m.getMetamodel().getType().equals(info.getType())) {
-            throw new BadRequestException("Not allowed to change type");
-        }
-
-        m.setName(info.getName());
-        m.setShared(info.getShared());
-        m.setDescription(info.getDescription());
-
-        modelRepository.saveModel(id, m);
-
-        return createModelInfo(info.getModelId(), uriInfo);
-
     }
 
 
