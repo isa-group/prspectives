@@ -58,7 +58,7 @@ public class ConverterHelper {
     	String xml=null;
     	
         if ((xml == null || xml.isEmpty())) {
-        	System.out.println("TYPE: " + m.getType());
+        	//System.out.println("TYPE: " + m.getType());
             if (model2XmlConverter.canTransform(m.getType())) {
                 try {
                     xml = createAndStoreXml(m);
