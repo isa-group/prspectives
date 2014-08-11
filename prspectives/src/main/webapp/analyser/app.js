@@ -28,12 +28,14 @@ function AnalyserCtrl($scope, $http, $log) {
 	$scope.performedActions = [];
 	$scope.selected = {person: "", activity:"", operation:""};
 	$scope.activitySet = new Array();
-	window.scope = $scope;
+
+	
 	$scope.selectAll = function (){
 		for(var x in $scope.activitySet){
 			$scope.activitySet[x]=true;
 		}
 	};
+
 	
 	$scope.unselectAll = function (){
 		for(var x in $scope.activitySet){
@@ -53,6 +55,7 @@ function AnalyserCtrl($scope, $http, $log) {
 				break;
 			}
 		}
+		
 	};
 	
 	$scope.calculateText = function(text, tabs){
@@ -73,7 +76,8 @@ function AnalyserCtrl($scope, $http, $log) {
 	
 	
 	$scope.createNewAnalysis = function(){	
-		var action = {id:$scope.nextPerformedActionId, name: $scope.selected.operation, param:$scope.getParamString(), success:false, result:"waiting"};
+		var action = {id:$scope.nextPerformedActionId, active: true, name: $scope.selected.operation, param:$scope.getParamString(), success:false, result:"waiting"};
+		
 		$("#newOpModal").modal('hide');
 		$scope.performedActions[$scope.performedActions.length] = action;
 		$scope.nextPerformedActionId++;
@@ -119,7 +123,15 @@ function AnalyserCtrl($scope, $http, $log) {
 				var orgId = $scope.assignments.organizationalModel;
 				var bpmnId = $scope.bpmnModel.modelId;
 				var operationPath = action.name.toLowerCase().replace(/ /g,"_");
-				var url = $scope.getAnalyserPath() + "/" + operationPath + "/" + bpmnId + "/" + action.param.replace(/;/g,"%3B") + "/RESPONSIBLE";
+				
+				var url;
+				if(action.param.indexOf(";")==-1){
+					url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + action.param + "/" + operationPath + "?duty=RESPONSIBLE";
+				}else{
+					url = $scope.getAnalyserPath() + "/" + bpmnId + "/" + operationPath + "?duty=RESPONSIBLE&activities=" + action.param.replace(/;/g,"%3B");
+				}
+				
+				
 				$http.get(url).success(function(data) {
 					$log.info("analyser success:" + data);
 					action.success = true;

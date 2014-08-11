@@ -52,15 +52,15 @@ public class RALModel2XMLConverter extends PPINOTModel2XmlConverter {
 		String bpmnString = xmlResult.toString();
 		
 		try {
-			System.out.println("HAS ASSIGNMENTS: " + m.getExtensions().has("assignments"));
+			//System.out.println("HAS ASSIGNMENTS: " + m.getExtensions().has("assignments"));
 			if(m.getExtensions().has("assignments")){
 					JSONObject obj = m.getExtensions().getJSONObject("assignments");
-					System.out.println("ORGANIZATIONAL MODEL: " + obj.getString("organizationalModel"));
+					//System.out.println("ORGANIZATIONAL MODEL: " + obj.getString("organizationalModel"));
 					if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
 						Iterator<?> it = obj.keys();
 						while(it.hasNext()){
 							String next = (String) it.next();
-							System.out.println("NEXT: " + next);
+							//System.out.println("NEXT: " + next);
 							if(!next.equals("organizationalModel")){
 								JSONObject process = obj.getJSONObject(next);
 								processJSONProcess(process,activityAssignmentMap);
@@ -97,7 +97,7 @@ public class RALModel2XMLConverter extends PPINOTModel2XmlConverter {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			bpmn.saveModel(os);
 			String modified = os.toString();
-			System.out.println(modified);
+			//System.out.println(modified);
 			xmlResult = new StringWriter();
 			xmlResult.write(modified);
 			
@@ -118,7 +118,7 @@ public class RALModel2XMLConverter extends PPINOTModel2XmlConverter {
 				while(it.hasNext()){
 					String next = (String) it.next();
 					activityAssignmentMap.put(next, assignments.getString(next));
-					System.out.println("INSERTED IN MAP: <" + next + ", " + assignments.getString(next) + ">");
+					//System.out.println("INSERTED IN MAP: <" + next + ", " + assignments.getString(next) + ">");
 				}
 			}
 			

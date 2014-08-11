@@ -84,4 +84,10 @@
         <constructor-arg value="index.html" />
         <constructor-arg value="index.html" />
     </bean>
+    
+    <bean id="analyserFactory" class="es.us.isa.bpms.analyser.Neo4JAnalyserFactory" >
+    </bean>
+    
+    
+    <import resource="classpath:cacheConfig.xml" />
 </beans>

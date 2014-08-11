@@ -182,7 +182,7 @@ input.templatefield:hover,.templatefield:hover {
 				</ul>
 				</div>
 				<div class="span10 well" >
-					<tabset ng-show="performedActions.length>0" id="tabset"> <tab ng-repeat="operation in performedActions">
+					<tabset ng-show="performedActions.length>0" id="tabset"> <tab ng-repeat="operation in performedActions" active="operation.active">
 						<tab-heading>
 			                {{calculateText(operation.name)}} <i class="icon-remove-circle" ng-click="removeAction(operation.id)" style="cursor: pointer;"></i>
 			            </tab-heading>
