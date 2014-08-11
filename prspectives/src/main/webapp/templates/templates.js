@@ -1,4 +1,4 @@
-angular.module('templatesApp', ['ppinotTemplates', 'loginModule', 'navbarModule']);
+angular.module('templatesApp', ['ppinotTemplates', 'loginModule', 'navbarModule', 'angularFileUpload']);
 
 function iteratePPIs(ppiSet, iterationFunction) {
     $(ppiSet).each(function() {
@@ -79,16 +79,65 @@ function TemplatesCtrl($scope, $location, $http) {
                 $scope.ppis = data;
                 loadArrays($scope.ppis);
             });
-        })
+        });
     };
 
     $scope.remove = function(ppi) {
     	var index = $scope.ppis.indexOf(ppi);
     	$scope.ppis.splice(index, 1);
-    }
+    };
 
     $scope.save = function() {
         saveArrays($scope.ppis);
         $http.put($scope.model.url+"/ppis", $scope.ppis);
-    }
-}
+    };
+};
+
+function MyCtrl($scope, $upload) {	
+	$scope.onFileSelect = function($files) {
+		//$files: an array of files selected, each file has name, size, and type.
+		for (var i = 0; i < $files.length; i++) {
+			var file = $files[i];
+			//var post_url = '/bpmn-editor/service/model/RFC/ppis/calculate';
+			var id = $scope.$$prevSibling.navbar.currentModelId;
+			var post_url = $scope.model.url+'/ppis/calculate';
+			$scope.progress = 0;
+			$scope.upload = $upload.upload({
+				url: post_url,
+				data: file,
+				file: file,
+				type: "POST",
+				dataType: "xml",
+				contentType: "multipart/form-data",
+				// method: "post",
+				// headers: {'headerKey': 'headerValue'},
+				// withCredentials: true,
+				// data: {myObj: $scope.myModelObj},
+				// file: $files, //upload multiple files, this feature only works in HTML5 FromData browsers
+				/* set file formData name for 'Content-Desposition' header. Default: 'file' */
+				//fileFormDataName: myFile, //OR for HTML5 multiple upload only a list: ['name1', 'name2', ...]
+				/* customize how data is added to formData. See #40#issuecomment-28612000 for example */
+				//formDataAppender: function(formData, key, val){} //#40#issuecomment-28612000
+			}).progress(function(evt) {
+				console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total));
+				$scope.progress = parseInt(100.0 * evt.loaded / evt.total);
+			}).success(function(data, status, headers, config) {
+				// file is uploaded successfully
+				var medidas = angular.fromJson(data);
+				$scope.medidas = medidas;
+                for (var i=0; i<medidas.length; i++){
+                    var values = [];
+                    for (var j=0; j<medidas[i].length; j++){
+                        values.push(medidas[i][j].value);
+                    }
+                    $scope.medidas[i].values = values.toString();
+                }
+				$('#uploadDialog').modal('hide');
+			}).error(function(xhr, status, error) {
+				console.log(status);
+			});
+			//.then(success, error, progress); 
+		};
+		// $scope.upload = $upload.upload({...}) alternative way of uploading, sends the the file content directly with the same content-type of the file. Could be used to upload files to CouchDB, imgur, etc... for HTML5 FileReader browsers. 
+	};
+};
