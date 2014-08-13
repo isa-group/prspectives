@@ -1,6 +1,6 @@
-function BPMNModel(modelId, modelUrl) {
-    this.modelId = modelId;
-    this.url = modelUrl;
+function BPMNModel(modelInfo) {
+    this.modelId = modelInfo.modelId;
+    this.url = modelInfo.modelLinks.process;
     this.processes = {};
 }
 
@@ -9,7 +9,7 @@ jQuery.extend(BPMNModel.prototype, {
 		var that = this;
 		return $.ajax({
 			type: "GET",
-			url: that.url + "/info",
+			url: that.url,
 			dataType: "json",
 			success: function(data) {
 			    $(data).each(function() {

@@ -108,8 +108,9 @@ public class ModelsResource {
             modelInfo.setOwner(!m.getShared().contains(userService.getLoggedUser()));
             modelInfo.setLinks(m.createLinks(uriInfo.getBaseUriBuilder()));
             modelInfo.setExport(m.createExports(uriInfo.getBaseUriBuilder()));
+            modelInfo.setModelLinks(m.createModelLinks(uriInfo.getBaseUriBuilder()));
         } catch (Exception e) {
-            log.warning("Error processing model info of "+modelId);
+            log.warning("Error processing model info of " + modelId);
             log.warning(e.toString());
         }
 
@@ -126,7 +127,7 @@ public class ModelsResource {
 
         if (info.getModelId() == null) {
             info.setModelId(info.getName().replaceAll("\\W", ""));
-        } else if ( ! info.getModelId().matches("\\w+")) {
+        } else if (!info.getModelId().matches("\\w+")) {
             throw new BadRequestException("Invalid modelId");
         }
 
@@ -141,8 +142,7 @@ public class ModelsResource {
         if (modelRepository.addModel(model)) {
             ModelInfo modelInfo = createModelInfo(info.getModelId(), uriInfo);
             r = Response.ok(modelInfo, MediaType.APPLICATION_JSON_TYPE).build();
-        }
-        else {
+        } else {
             r = Response.status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -296,6 +296,12 @@ public class ModelsResource {
             throw new org.jboss.resteasy.spi.NotFoundException("Model not found");
         }
 
+        String xml = getXmlFromModel(m);
+
+        return xml;
+    }
+
+    private String getXmlFromModel(Model m) {
         String xml = m.getXml();
 
         if ((xml == null || xml.isEmpty())) {
@@ -311,7 +317,6 @@ public class ModelsResource {
                 throw new NotFoundException("XML representation not available");
             }
         }
-
         return xml;
     }
 
@@ -327,7 +332,7 @@ public class ModelsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @PUT
     public InputStream oryxUpdateModel(@PathParam("id") String id, @FormParam("json_xml") String jsonXml, @FormParam("name") String name, @FormParam("type") String type, @FormParam("description") String description, @FormParam("svg_xml") String svgXml) {
-        log.info("Saving name: "+name);
+        log.info("Saving name: " + name);
         log.info("Saving jsonXML: " + jsonXml);
 
         checkUserLogged();
@@ -338,7 +343,7 @@ public class ModelsResource {
         m.setDescription(description);
         m.setSvg(svgXml);
 
-        if (! m.getMetamodel().getType().equals(type)) {
+        if (!m.getMetamodel().getType().equals(type)) {
             throw new RuntimeException("The submitted model is not valid (type mismatch)");
         }
 
@@ -360,7 +365,7 @@ public class ModelsResource {
     }
 
     private void checkUserLogged() {
-        if (! userService.isLogged())
+        if (!userService.isLogged())
             throw new UnauthorizedException("User not logged");
     }
 
@@ -396,7 +401,7 @@ public class ModelsResource {
     }
 
 
-    @Path("/models/{id}")
+    @Path("/models/{id}/process")
     public ProcessElementsResource getProcessInfo(@PathParam("id") String id) {
         InputStream processReader = IOUtils.toInputStream(getModelXml(id));
         return new ProcessElementsResource(processReader);
@@ -408,4 +413,22 @@ public class ModelsResource {
         InputStream processReader = IOUtils.toInputStream(getModelXml(id));
         return new PPINOTResource(processReader, id, userService, modelRepository);
     }
+
+    // ------------------------------ ADDED BY TOKEN
+
+    @Path("/model/{token}/{id}/xml")
+    @Produces(MediaType.APPLICATION_XML)
+    @GET
+    public String getModelByTokenXml(@PathParam("token") String token, @PathParam("id") String id) {
+        Model m = modelRepository.getModelUsingToken(id, token);
+        return getXmlFromModel(m);
+    }
+
+    @Path("/model/{token}/{id}/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public InputStream getModelByTokenJson(@PathParam("token") String token, @PathParam("id") String id) {
+        return modelRepository.getModelReaderUsingToken(id, token);
+    }
+
 }

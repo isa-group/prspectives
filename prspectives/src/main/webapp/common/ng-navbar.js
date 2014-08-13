@@ -100,7 +100,7 @@ angular.module('navbarModule', ['loginModule', 'prspectives.modelHandler', 'ui.b
         }
 
         function updateModel() {
-            if ($scope.navbar.modelsMap && $scope.navbar.currentModelId) {
+            if ($scope.navbar.models && $scope.navbar.currentModelId) {
                 $scope.navbar.currentModel = $scope.navbar.models[$scope.navbar.currentModelId];
             }
         }

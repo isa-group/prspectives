@@ -32,4 +32,14 @@ public class DevelUserService implements UserService {
         currentUser = otherUser;
         otherUser = old;
     }
+
+    @Override
+    public String getToken() {
+        return null;
+    }
+
+    @Override
+    public String getUserByToken(String token) {
+        return null;
+    }
 }

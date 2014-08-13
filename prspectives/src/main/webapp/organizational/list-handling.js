@@ -6,8 +6,8 @@ angular.module('listHandling', ['ui.bootstrap'])
             transclude: true,
             scope: { ngModel: '=', placeholder: '@', add: '@', showAdd: '@'},
             template: '<ul>' +
-                      '<li ng-repeat="el in ngModel" ng-transclude>' +
-                         '<input type="text" class="templatefield" ng-model="el.name" placeholder="{{placeholder}}" required/>'+
+                      '<li ng-repeat="elem in ngModel">' +
+                         '<input type="text" class="templatefield" ng-model="elem.name" placeholder="{{placeholder}}" required/>'+
                          '<a remove from="ngModel" index="{{$index}}"></a>'+
                       '</li>' +
                       '<li ng-show="showAdd"><a class="btn" ng-click="addElem(ngModel)"><i class="icon-pencil"></i> {{add}}</a></div></li>'+

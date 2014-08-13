@@ -1,6 +1,6 @@
 package es.us.isa.bpms.model.metamodels;
 
-import es.us.isa.bpms.editor.EditorResource;
+import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.model.Model2XmlConverter;
 import es.us.isa.bpms.model.ModelsResource;
 import org.json.JSONObject;
@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author resinas
  */
-public class OrgMetamodel implements Metamodel {
+public class OrgMetamodel extends CommonMetamodel implements Metamodel {
 
     public static final String ORG = "Organization";
 
@@ -26,23 +26,23 @@ public class OrgMetamodel implements Metamodel {
     }
 
     @Override
-    public Map<String, URI> createLinks(String modelId, UriBuilder builder) {
+    public Map<String, URI> createLinks(Model model, UriBuilder builder) {
         Map<String, URI> links = new HashMap<String, URI>();
 
         UriBuilder basic = builder.clone().path("{html}").fragment("{id}");
 
-        links.put("editor", basic.build("organizational.html", "/" + modelId));
+        links.put("editor", basic.build("organizational.html", "/" + model.getModelId()));
 
         return links;
     }
 
     @Override
-    public Map<String, URI> createExports(String modelId, UriBuilder builder) {
+    public Map<String, URI> createExports(Model model, UriBuilder builder) {
         Map<String, URI> exports = new HashMap<String, URI>();
 
         UriBuilder base = builder.clone().path(ModelsResource.class);
 
-        exports.put("JSON", base.clone().path(ModelsResource.class, "getModelJson").build(modelId));
+        exports.put("JSON", base.clone().path(ModelsResource.class, "getModelJson").build(model.getModelId()));
 
         return exports;
     }

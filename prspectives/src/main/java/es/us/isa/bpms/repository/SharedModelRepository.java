@@ -31,10 +31,20 @@ public class SharedModelRepository extends AbstractModelHandler implements Model
 
     @Override
     public Model getModel(String id) {
+        return getModelUsingToken(id, null);
+    }
+
+    @Override
+    public InputStream getModelReader(String id) {
+        return getModelReaderUsingToken(id, null);
+    }
+
+    @Override
+    public Model getModelUsingToken(String id, String token) {
         Model m;
 
         try {
-            m = Model.createModel(createJSONObject(getModelReader(id)), metamodelLibrary);
+            m = Model.createModel(createJSONObject(getModelReaderUsingToken(id, token)), metamodelLibrary);
         } catch (Exception e) {
             throw new RuntimeException("Unable to get model " + id, e);
         }
@@ -43,8 +53,13 @@ public class SharedModelRepository extends AbstractModelHandler implements Model
     }
 
     @Override
-    public InputStream getModelReader(String id) {
-        Workspace workspace = createUserWorkspace();
+    public InputStream getModelReaderUsingToken(String id, String token) {
+        Workspace workspace;
+        if (token == null || token.isEmpty()) {
+            workspace = createUserWorkspace();
+        } else {
+            workspace = createUserWorkspaceByToken(token);
+        }
         InputStream modelReader = workspace.getModelReader(id);
 
         try {

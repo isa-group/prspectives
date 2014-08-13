@@ -2,6 +2,7 @@ package es.us.isa.bpms.model.metamodels;
 
 import es.us.isa.bpms.editor.EditorResource;
 import es.us.isa.bpms.model.BPMNModel2XmlConverter;
+import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.model.Model2XmlConverter;
 import es.us.isa.bpms.model.ModelsResource;
 import org.json.JSONException;
@@ -19,7 +20,7 @@ import java.util.Map;
  *
  * @author resinas
  */
-public class BpmnMetamodel implements Metamodel {
+public class BpmnMetamodel extends CommonMetamodel implements Metamodel {
 
     public static final String BPMN20 = "BPMN 2.0";
 
@@ -35,7 +36,8 @@ public class BpmnMetamodel implements Metamodel {
     }
 
     @Override
-    public Map<String, URI> createLinks(String modelId, UriBuilder builder) {
+    public Map<String, URI> createLinks(Model model, UriBuilder builder) {
+        String modelId = model.getModelId();
         Map<String, URI> links = new HashMap<String, URI>();
 
         UriBuilder basic = builder.clone().path("{html}").fragment("{id}");
@@ -43,12 +45,17 @@ public class BpmnMetamodel implements Metamodel {
         links.put("editor", builder.clone().path(EditorResource.class).queryParam("id", modelId).build());
         links.put("View PPIs", basic.build("ppi-template.html", "/" + modelId));
         links.put("Resource assignment", basic.build("resource-assignment.html", "/" + modelId));
+        if (hasBeenAssigned(model)) {
+            links.put("Analyse", basic.build("analyser.html", "/" + modelId));
+        }
+
 
         return links;
     }
 
     @Override
-    public Map<String, URI> createExports(String modelId, UriBuilder builder) {
+    public Map<String, URI> createExports(Model model, UriBuilder builder) {
+        String modelId = model.getModelId();
         Map<String, URI> exports = new HashMap<String, URI>();
 
         UriBuilder base = builder.clone().path(ModelsResource.class);
@@ -59,6 +66,26 @@ public class BpmnMetamodel implements Metamodel {
         exports.put("PDF", base.clone().path(ModelsResource.class, "getModelPdf").build(modelId));
 
         return exports;
+    }
+
+    @Override
+    public Map<String, URI> createModelLinks(Model model, UriBuilder builder) {
+        Map<String, URI> modelLinks = super.createModelLinks(model, builder);
+
+        modelLinks.put("process",
+                builder.clone()
+                        .path(ModelsResource.class)
+                        .path(ModelsResource.class, "getProcessInfo")
+                        .build(model.getModelId()));
+
+        modelLinks.put("ppis",
+                builder.clone()
+                        .path(ModelsResource.class)
+                        .path(ModelsResource.class, "getPPIs")
+                        .build(model.getModelId()));
+
+        return modelLinks;
+
     }
 
     @Override
@@ -85,4 +112,41 @@ public class BpmnMetamodel implements Metamodel {
     public Model2XmlConverter getXmlConverter() {
         return converter;
     }
+
+    private boolean hasBeenAssigned(Model m){
+        boolean result = false;
+        try {
+            if(m.getExtensions().has("assignments")){
+                JSONObject obj = m.getExtensions().getJSONObject("assignments");
+                if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
+                    result = true;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public String getOrganization(Model m){
+        if(!hasBeenAssigned(m)){
+            return null;
+        }
+        String result=null;
+
+        try {
+            if(m.getExtensions().has("assignments")){
+                JSONObject obj = m.getExtensions().getJSONObject("assignments");
+                if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
+                    result = obj.getString("organizationalModel");
+                }
+            }
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
 }

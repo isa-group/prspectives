@@ -1,5 +1,6 @@
 package es.us.isa.bpms.model.metamodels;
 
+import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.model.Model2XmlConverter;
 import org.json.JSONObject;
 
@@ -17,11 +18,11 @@ public interface Metamodel {
 
     public String getType();
 
-    public Map<String, URI> createLinks(String modelId, UriBuilder builder);
-    public Map<String, URI> createExports(String modelId, UriBuilder builder);
+    public Map<String, URI> createLinks(Model model, UriBuilder builder);
+    public Map<String, URI> createExports(Model model, UriBuilder builder);
+    public Map<String,URI> createModelLinks(Model model, UriBuilder builder);
 
     public JSONObject createEmptyModel();
 
     public Model2XmlConverter getXmlConverter();
-
 }

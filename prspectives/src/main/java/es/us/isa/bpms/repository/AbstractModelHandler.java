@@ -38,6 +38,10 @@ public class AbstractModelHandler {
         return createUserWorkspace(email);
     }
 
+    protected Workspace createUserWorkspaceByToken(String token) {
+        return createUserWorkspace(userService.getUserByToken(token));
+    }
+
     protected Workspace createUserWorkspace(String email) {
         return workspaceFactory.createWorkspace(email);
     }

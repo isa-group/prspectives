@@ -248,10 +248,12 @@ public class Model implements Storeable{
     }
 
     public Map<String, URI> createLinks(UriBuilder builder) {
-        return metamodel.createLinks(modelId, builder);
+        return metamodel.createLinks(this, builder);
     }
 
     public Map<String, URI> createExports(UriBuilder builder) {
-        return metamodel.createExports(modelId, builder);
+        return metamodel.createExports(this, builder);
     }
+
+    public Map<String, URI> createModelLinks(UriBuilder builder) { return metamodel.createModelLinks(this, builder); }
 }

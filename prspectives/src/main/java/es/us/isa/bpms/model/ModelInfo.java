@@ -28,6 +28,7 @@ public class ModelInfo {
 
     private Map<String, URI> links;
     private Map<String, URI> export;
+    private Map<String, URI> modelLinks;
 
     public String getModelId() {
         return modelId;
@@ -126,5 +127,12 @@ public class ModelInfo {
         this.export = export;
     }
 
+    public Map<String, URI> getModelLinks() {
+        return modelLinks;
+    }
+
+    public void setModelLinks(Map<String, URI> modelLinks) {
+        this.modelLinks = modelLinks;
+    }
 }
 

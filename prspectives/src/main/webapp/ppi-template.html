@@ -5,100 +5,217 @@
 		<title>PPINOT Templates</title>
 	    <link rel="stylesheet" href="webjars/bootstrap/2.3.2/css/bootstrap.css"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet">
-	    <style>
-          body {
-            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-          }
-
-          input.templatefield, .templatefield{
-	      	border: 0;
-	      	box-shadow: none;
-	      	-webkit-box-shadow: none;
-	      	-mox-box-shadow: none;
-		    margin-bottom: 0;
-		    font-size: 14px;
-            font-color: black;
-            width: 95%;
-	      }
-	      input.templatefield:focus, .templatefield:focus {
-	      	border: 1px solid rgba(82, 168, 236, 0.8);
-	      }
-	      input.templatefield:hover, .templatefield:hover{
-		    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    outline: 0;
-		    outline: thin dotted \9;
-	      }
-
-	    </style> 	        
+        <script src="uploader/angular-file-upload-shim.js"></script>	    
+	     	        
 		<script src="webjars/jquery/1.7.2/jquery.js"></script>
         <script src="webjars/angularjs/1.2.21/angular.js"></script>
-        <script src="webjars/angularjs/1.2.21/angular-resource.js"></script>
+        <script src="webjars/angularjs/1.2.21/angular-resource.min.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
+        <script src="http://static.scripting.com/github/bootstrap2/js/bootstrap-transition.js"></script>
+		<script src="http://static.scripting.com/github/bootstrap2/js/bootstrap-modal.js"></script>
+		<script src="http://markusslima.github.io/bootstrap-filestyle/js/bootstrap-filestyle.min.js"></script>
         <script src="webjars/ppinot-templates-angular/2.0/ppinot-templates.js"></script>
         <script src="templates/process.js"></script>
         <script src="templates/templates.js"></script>
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
+        
+		<script src="uploader/angular-file-upload.js"></script>
+		<link href="uploader/uploader.css" rel="stylesheet">
+
+		<script type="text/javascript" src="sparklines/jquery.sparkline.js"></script>
+
+        <script>
+        	var item = "";
+			function closeDialog () {
+				$('#uploadDialog').modal('hide');
+				$('#moreInfoDialog').modal('hide'); 
+			};
+			function okClicked () {
+				closeDialog ();
+			};
+			function modalOptions(data){
+				item = JSON.parse(data);
+				$("#result table tbody").html("");
+				for (var i=0; i<item.length; i++){
+					drawRow(item[i]);
+				}
+			};
+			function drawRow(rowData) {
+				var row = $("<tr />")
+				$("#result table tbody").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+				row.append($("<td>" + rowData.scope.instances + "</td>"));
+				row.append($("<td class='center'>" + rowData.value + "</td>"));
+				row.append($("<td class='center'>" + "[4,5]" + "</td>"));
+			};
+			function cargaSparlines () {
+				$('.inlinesparkline').sparkline('html',{width:'150', height:'30', lineWidth: 3, spotRadius:3});
+			};
+        </script>
+	    <style>
+			body {
+				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+			}
+			input.templatefield, .templatefield{
+				border: 0;
+				box-shadow: none;
+				-webkit-box-shadow: none;
+				-mox-box-shadow: none;
+				margin-bottom: 0;
+				font-size: 14px;
+				font-color: black;
+				width: 95%;
+			}
+			input.templatefield:focus, .templatefield:focus {
+				border: 1px solid rgba(82, 168, 236, 0.8);
+			}
+			input.templatefield:hover, .templatefield:hover{
+				-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+				outline: 0;
+				outline: thin dotted \9;
+			}
+			#uploadDialog .row{
+				margin:0;
+			}
+			.text_modal{
+				line-height:50px;
+				padding-left: 100px;
+				padding-top: 20px;
+				padding-bottom: 18px;
+			}
+			.text_modal input{
+				height:20px;
+				margin-top: 10px;
+			}
+			#moreInfoDialog .text_modal{
+				padding: 20px 20px 0 20px;
+			}
+			.form-group.bootstrap-filestyle{
+				width:341px;
+			}
+			.center{
+				text-align: center !important;
+			}
+			#moreInfoDialog{
+				max-height: 80%;
+				overflow-y: auto;
+			}
+			.graphics{
+				width: 150px;
+			}
+	    </style>
     </head>
 	<body ng-controller="TemplatesCtrl">
+    	<div class="topbar" data-context="navbar" data-title="PPI Templates">    	
+    	</div>
+		<div class="container">
+			<h2>PPIs of {{navbar.currentModel.name}}</h2>
+			<div ng-repeat="processPPIs in ppis">
+				<div ng-repeat="ppi in processPPIs.ppis">
+					<table class="table table-bordered">
+						<tr>
+							<th style="width:10em"><span tooltip="Id: {{ppi.id}}" tooltip-placement="right">PPI:</span></th>
+	                    	<td><input type="text" class="templatefield" ng-model="ppi.name" placeholder="PPI descriptive name"/></td>
+				   		</tr>		   	
+						<tr>
+							<th>Process:</th>
+	                    	<td>{{model.processes[processPPIs.processId].processName}}</td>
+				   		</tr>
+			   			<tr>
+			   				<th>Goals:</th>
+			   				<td>
+	                        	<elementList ng-model="ppi.ngGoals" placeholder="'Strategic or operational goals the PPI is related to'" add="'Add new goal'"/>
+	                    	</td>
+			   			</tr>
+			   			<tr>
+			   				<th>Definition:</th>
+			   				<td>The PPI is defined as <measure ng-model="ppi.measuredBy" process="model.processes[processPPIs.processId]"></measure></td>
+			   			</tr>
+			   			<tr>
+			   				<th>Target:</th>
+			   				<td>The PPI value must be <target ng-model="ppi.target"></target> {{ppi.measuredBy.unitOfMeasure}}</td>
+			   			</tr>
+			   			<tr>
+			   				<th>Scope:</th>
+			   				<td>The process instances considered for this PPI are <scope ng-model="ppi.scope"/></td>
+			   			</tr>
+			   			<tr>
+			   				<th>Responsible:</th>
+			   				<td><input type="text" class="templatefield" ng-model="ppi.responsible" placeholder="Role, department, organization or person responsible for the PPI"/></td>
+			   			</tr>
+			   			<tr>
+			   				<th>Informed:</th>
+			   				<td>
+	                        	<elementList ng-model="ppi.ngInformed" placeholder="'Role, department, organization or person that should be informed about the PPI'" add="'Add new resource that should be informed about the PPI'"/>
+			   				</td>
+			   			</tr>
+			   			<tr>
+			   				<th>Comments:</th>
+			   				<td><textarea class="templatefield" ng-model="ppi.comments" rows="4" placeholder="Additional comments about the PPI"></textarea></td>
+			   			</tr>
+					</table>	
+				</div>
+			</div>
+			<div ng-controller="MyCtrl">
+				<div id="uploadDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
+					<div class="text_modal"><input type="file" ng-file-select="onFileSelect($files)" class="filestyle" data-classButton="btn btn-primary"></div>				
+					<div class="modal-footer">
+						<a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
+					</div>
+				</div>
+				<div id="moreInfoDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
+					<div class="text_modal">
+						<div id="result">
+							<table class="table table-bordered">
+								<thead>
+									<tr>
+										<th class="instances">Instances</th>
+										<th class="last_value center">Value</th>
+										<th class="target center">Time</th>
+									</tr>
+								</thead>
+								<tbody>
 
-    <div class="topbar" data-context="navbar" data-title="PPI Templates"></div>
-
-<div class="container">
-
-<h2>PPIs of {{navbar.currentModel.name}}</h2>
-<div ng-repeat="processPPIs in ppis">
-    <div ng-repeat="ppi in processPPIs.ppis">
-		<table class="table table-bordered">
-				<tr>
-					<th style="width:10em"><span tooltip="Id: {{ppi.id}}" tooltip-placement="right">PPI:</span></th>
-                    <td><input type="text" class="templatefield" ng-model="ppi.name" placeholder="PPI descriptive name"/></td>
-			   	</tr>		   	
-				<tr>
-					<th>Process:</th>
-                    <td>{{model.processes[processPPIs.processId].processName}}</td>
-			   	</tr>
-		   		<tr>
-		   			<th>Goals:</th>
-		   			<td>
-                        <elementList ng-model="ppi.ngGoals" placeholder="'Strategic or operational goals the PPI is related to'" add="'Add new goal'"/>
-                    </td>
-		   		</tr>
-		   		<tr>
-		   			<th>Definition:</th>
-		   			<td>The PPI is defined as <measure ng-model="ppi.measuredBy" process="model.processes[processPPIs.processId]"></measure></td>
-		   		</tr>
-		   		<tr>
-		   			<th>Target:</th>
-		   			<td>The PPI value must be <target ng-model="ppi.target"></target> {{ppi.measuredBy.unitOfMeasure}}</td>
-		   		</tr>
-		   		<tr>
-		   			<th>Scope:</th>
-		   			<td>The process instances considered for this PPI are <scope ng-model="ppi.scope"/></td>
-		   		</tr>
-		   		<tr>
-		   			<th>Responsible:</th>
-		   			<td><input type="text" class="templatefield" ng-model="ppi.responsible" placeholder="Role, department, organization or person responsible for the PPI"/></td>
-		   		</tr>
-		   		<tr>
-		   			<th>Informed:</th>
-		   			<td>
-                        <elementList ng-model="ppi.ngInformed" placeholder="'Role, department, organization or person that should be informed about the PPI'" add="'Add new resource that should be informed about the PPI'"/>
-		   			</td>
-		   		</tr>
-		   		<tr>
-		   			<th>Comments:</th>
-		   			<td><textarea class="templatefield" ng-model="ppi.comments" rows="4" placeholder="Additional comments about the PPI"></textarea></td>
-		   		</tr>
-		</table>	
-	</div>
-</div>
-</div>
-    <div class="well" style="text-align:right;">
-        <input class="btn btn-primary" type="submit" ng-click="save();" value="Save PPIs">
-    </div>
-</body>
+								</tbody>
+							</table>
+						</div>
+					</div>				
+					<div class="modal-footer">
+						<a href="#" class="btn" onclick="closeDialog ();">Close</a>
+					</div>
+				</div>
+				<div ng-if="medidas">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th class="name">Name PPI</th>
+								<th class="last_value center">Last value</th>
+								<th class="target center">Target</th>
+								<th class="graphics center"><a href="#" onClick="cargaSparlines()">Graphics</a></th>
+								<th class="more_info center">More info</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="medida in medidas">
+								<td>{{medida[medida.length-1].scope.processId}}</td>
+								<td class="center">{{medida[medida.length-1].value}}</td>
+								<td class="center">target</td>
+								<td><span class="inlinesparkline">{{medida.values}}</span></td>
+								<td class="center"><a data-toggle="modal" href="#moreInfoDialog" class="btn btn-primary" onClick="modalOptions('{{medida}}')">More</a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="well" style="text-align:right;">
+			<div class="container">
+	    		<input class="btn btn-primary" type="submit" ng-click="save();" value="Save PPIs">
+	    		<a data-toggle="modal" href="#uploadDialog" class="btn btn-primary">Upload Log</a>
+			</div>
+		</div>
+	</body>
 </html>

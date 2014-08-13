@@ -3,9 +3,8 @@ angular.module('organizationalApp', ['navbarModule','loginModule','listHandling'
       return {
         restrict: 'A',
         replace: true,
-        transclude: true,
         scope: { model: '=', positions: '=', placeholder: '@', add: '@', detailsCollapsed: '@'},
-        template: '<ul class="positions" ng-transclude>' +
+        template: '<ul class="positions">' +
                     '<li class="liposition" ng-repeat="el in positions">' +
                        '<form style="display:inline-block" class="form-inline"><input type="text" ng-model="el.name" placeholder="{{placeholder}}" /></form>'+
                        '<ul class="actions inline">'+
@@ -84,6 +83,12 @@ function OrganizationalCtrl($scope, $http, $log) {
 
             if (! $scope.model.units)
                 $scope.model.units = [];
+            
+            if (! $scope.model.types)
+                $scope.model.types = [];
+            
+            if (! $scope.model.teams)
+                $scope.model.teams = [];
         });
     };
 
@@ -98,6 +103,18 @@ function OrganizationalCtrl($scope, $http, $log) {
         $log.info("Saving model...");
         $log.info($scope.model);
         $http.put($scope.navbar.currentModel.url+"/json", $scope.data);
-    }
+    };
+    $scope.durations = [
+        {name: "Permanent", value:"Permanent"},
+        {name: "Temporary", value:"Temporary"}
+    ];
+    $scope.temporaries = [
+        {name: "Date", value:"Date"},
+        {name: "ActivityInstance", value:"ActivityInstance"},
+        {name: "ProcessInstance", value:"ProcessInstance"}
+    ];
+    $scope.toggleEdit = function() {
+        $scope.isEditing = !$scope.isEditing;
+    };
 
 }

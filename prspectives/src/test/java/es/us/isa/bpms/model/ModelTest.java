@@ -34,6 +34,6 @@ public class ModelTest {
         Model orgModel = new Model("mid", "name", new OrgMetamodel());
         Map<String, URI> exports = orgModel.createExports(UriBuilder.fromPath("/"));
 
-        Assert.assertEquals("/service/model/mid/json", exports.get("JSON").toString());
+        Assert.assertEquals("/service/models/mid/json", exports.get("JSON").toString());
     }
 }

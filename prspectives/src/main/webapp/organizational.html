@@ -63,7 +63,7 @@
     <h2>{{navbar.currentModel.name}}</h2>
     <tabset>
         <tab heading="Units and Positions">
-            <form addform list="model.units" placeholder="Unit name" button="Add new unit"></form>
+            <form addform list="model.units" placeholder="Organizational unit name" button="Add new organizational unit"></form>
 
             <div class="well" ng-repeat="unit in model.units">
                 <div class="pull-right">
@@ -71,13 +71,13 @@
                     <button ng-show="poscollapsed && ! unit.positions.length == 0" class="btn" ng-click="poscollapsed = false">Show people and role information</button>
                 </div>
 
-                <h3>Unit: {{unit.name}} <a data-remove data-from="model.units" data-index="{{$index}}"></a></h3>
+                <h3>Organizational Unit: {{unit.name}} <a data-remove data-from="model.units" data-index="{{$index}}"></a></h3>
 
-                <ul positionslist model="model" positions="unit.positions" details-collapsed="{{poscollapsed}}" placeholder="Name of the position" add="Add a new position to this unit">
+                <ul positionslist model="model" positions="unit.positions" details-collapsed="{{poscollapsed}}" placeholder="Name of the position" add="Add a new position to this organizational unit">
                 </ul>
 
                 <hr/>
-                <form addform list="unit.positions" placeholder="Position name" button="Add a new position to this unit"></form>
+                <form addform list="unit.positions" placeholder="Position name" button="Add a new position to this organizational unit"></form>
             </div>
         </tab>
 
@@ -91,7 +91,61 @@
             <form addform list="model.persons" placeholder="Person name" button="Add new person"></form>
             <ul elementlist ng-model="model.persons" placeholder="Person name"></ul>
         </tab>
-    </tabset>
+        
+        <tab heading="Type">
+            <form addform list="model.types" placeholder="Type name" button="Add new type"></form>
+            <ul elementlist ng-model="model.types" placeholder="Type name"></ul>
+        </tab>
+        
+        <tab heading="Team">
+            <form addform list="model.teams" placeholder="Team id" button="Add new team"></form>
+            <div class="well" ng-repeat="team in model.teams">
+
+                <h3>Team: {{team.name}} <a data-remove data-from="model.teams" data-index="{{$index}}"></a></h3>
+				
+				Type: <select ng-model="team.type" ng-options="type.name as type.name for type in model.types"></select>
+				<br>
+				
+				Duration:
+				<span>
+					<span ng-switch="team.duration">
+						<span ng-switch-when="Permanent">The team is permanent.</span>
+						<span ng-switch-when="Temporary">The team duration is defined by </span>
+					</span>
+					<span ng-show="team.duration=='Temporary'" ng-switch="team.temporary_type">
+						<span ng-switch-when="Date">date, between {{team.start_date}} and {{team.end_date}}.</span>
+						<span ng-switch-when="ActivityInstance">Activity Instance that is {{team.activity}}.</span>
+						<span ng-switch-when="ProcessInstance">Process Instance that is {{team.process}}.</span>
+					</span>
+					<form class="form-inline">
+						<select ng-model="team.duration" ng-options="c.value as c.name for c in durations"></select>
+						<select ng-show="team.duration=='Temporary'" ng-model="team.temporary_type" ng-options="c.value as c.name for c in temporaries"></select>
+						<input ng-show="team.temporary_type=='ActivityInstance'" type="text" class="input-medium" placeholder="Activity Instance" ng-model="team.activity"/>
+						<input ng-show="team.temporary_type=='ProcessInstance'" type="text" class="input-medium" placeholder="Process Instance" ng-model="team.process"/>
+						<span ng-show="team.duration=='Temporary'">
+							Start date: <input ng-show="team.temporary_type=='Date'" type="text" class="input-medium" placeholder="Start Date" ng-model="team.start_date"/>
+							End date: <input ng-show="team.temporary_type=='Date'" type="text" class="input-medium" placeholder="End Date" ng-model="team.end_date"/>
+						</span>
+					</form>
+				</span>
+				
+				Members:
+				<form addform list="team.roles" placeholder="Rol name" button="Add new rol"></form>
+				<div class="well" ng-repeat="rol in team.roles">
+					<h4>Rol: {{rol.name}} <a data-remove data-from="team.roles" data-index="{{$index}}"></a></h4>
+					<form addform list="rol.persons" placeholder="Person name" button="Add new person"></form>
+					<ul elementlist ng-model="rol.persons" placeholder="Person name"></ul>
+				</div>
+				
+				Reports to: <select ng-model="team.reportsTo" ng-options="p.name as p.name for p in model.persons"></select>
+				<br>
+				
+				Can delegate work to:
+				<form addform list="team.canDelegateWorkTo" placeholder="Person name" button="Add new person"></form>
+				<ul elementlist ng-model="team.canDelegateWorkTo" placeholder="Person name"></ul>
+			</div>
+		</tab>
+	</tabset>
 
 </div>
 <div class="well" style="text-align:right;">

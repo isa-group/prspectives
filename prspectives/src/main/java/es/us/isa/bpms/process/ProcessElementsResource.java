@@ -24,7 +24,6 @@ public class ProcessElementsResource {
         this.processStream = processStream;
     }
 
-    @Path("/info")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Collection<ProcessInfo> getProcessInfo(@PathParam("id") String id) {

@@ -6,7 +6,11 @@
         <link href="webjars/bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet"/>
         <link href="manager/css/angular-taglist-directive.css" rel="stylesheet"/>
+        <link href="resource-assignment/analyser-style.css" rel="stylesheet" />
 	    <style>
+	      html, body{
+	      	min-width: 1200px;
+	      }
           body {
             padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
           }
@@ -45,6 +49,7 @@
 
 	    </style>
         <script src="webjars/jquery/1.7.2/jquery.min.js"></script>
+        <script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
         <script src="webjars/angularjs/1.2.21/angular.js"></script>
         <script src="webjars/angularjs/1.2.21/angular-resource.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
@@ -53,6 +58,25 @@
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
+        <script src="libs/parser/antlr3-all-min.js"></script>
+        <script src="libs/parser/RALLexer.js"></script>
+        <script src="libs/parser/RALParser.js"></script>
+        <script>
+        	
+        		function runToggle(divId, aid){
+        			$( "#" +  divId ).toggle("blind", {}, 500, changeSymbol(aid));
+        		}
+        		
+        		function changeSymbol(aid){
+        			var element = document.getElementById(aid);
+        			if(element.innerHTML=='<i class="icon-plus-sign"></i>'){
+        				element.innerHTML="<i class=\"icon-minus-sign\"></i>";
+        			}else{
+        				element.innerHTML="<i class=\"icon-plus-sign\"></i>";
+        			}
+        		}
+        
+        </script>
     </head>
 
 <body ng-controller="AssignmentCtrl">
@@ -84,7 +108,9 @@
                     <div class="control-group" ng-repeat="activity in process.activityNames">
                         <label class="control-label">{{activity}}</label>
                         <div class="controls">
-                            <input class="input-xxlarge" type="text" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression"/>
+                            <input class="input-xxlarge" id="{{'input-' + activity}}" type="text" ng-blur="findPerformers(activity,process.processName,assignments.organizationalModel);" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression" />
+                        	<div class="infoResult" id="{{'info-' + getIdFromName(activity)}}"></div>
+                        	<div id="{{'report-' + getIdFromName(activity)}}" style="display:none;"></div>
                         </div>
                     </div>
                 </form>

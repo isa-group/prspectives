@@ -7,7 +7,7 @@
 	<groupId>es.us.isa.prspectives</groupId>
 	<artifactId>prspectives-parent</artifactId>
 
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
     <properties>
@@ -30,7 +30,7 @@
 		</plugins>
 	</build>
 
-	<url>http://bitbucket.org/isagroup/prspectives</url>
+	<url>http://github.org/isa-group/prspectives</url>
 	<licenses>
 		<license>
 			<name>Apache v2</name>
@@ -43,14 +43,14 @@
 	</organization>
 
 	<scm>
-		<connection>scm:git:http://bitbucket.org/isagroup/prspectives.git</connection>
-		<developerConnection>scm:git:https://git@bitbucket.org/isagroup/prspectives.git</developerConnection>
-		<url>https://bitbucket.org/isagroup/prspectives/</url>
+		<connection>scm:git:http://github.org/isa-group/prspectives.git</connection>
+		<developerConnection>scm:git:https://github.org/isa-group/prspectives.git</developerConnection>
+		<url>https://github.org/isa-group/prspectives/</url>
 		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
-		<system>bitbucket</system>
-		<url>https://bitbucket.org/isagroup/prspectives/issues</url>
+		<system>github</system>
+		<url>https://github.org/isa-group/prspectives/issues</url>
 	</issueManagement>
 	
     <modules>
