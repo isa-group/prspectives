@@ -119,7 +119,7 @@ public class PPINOTResource {
     @Path("/calculate")
     @Consumes("multipart/form-data")
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<Collection<Evaluation>> calculatePPIs(MultipartFormDataInput input, @PathParam("id") String id) throws IOException {
+    public Collection<Collection<Evaluation>> calculatePPIs(MultipartFormDataInput input) throws IOException {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
         List<InputPart> filePart = uploadForm.get("file");
         List<InputPart> namePart = uploadForm.get("name");
@@ -130,39 +130,31 @@ public class PPINOTResource {
         if (ext.equals("gz") || ext.equals("zip")) {
             inputStream = fromGzippedToBytes(inputStream, ext);
         }
-//        String log = IOUtils.toString(inputStream);
+        String log = IOUtils.toString(inputStream);
 
-        Collection<PPISet> ppiSet = getPPIs(id);
+        PPINotModelHandler ppiNotModelHandler = getPpiNotModelHandler(id);
+        Collection<PPISet> ppiSet = ppiNotModelHandler.getPPISets();
+
         PPISet ppis = (PPISet) ppiSet.toArray()[0];
         List<Collection<Evaluation>> evaluations = new ArrayList<Collection<Evaluation>>();
         for (PPI ppi : ppis.getPpis()) {
-//            PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(log.getBytes()));
-            PPIEvaluator evaluator = new MXMLEvaluator(inputStream);
+            PPIEvaluator evaluator = new MXMLEvaluator(new ByteArrayInputStream(log.getBytes()), ppiNotModelHandler);
+//            PPIEvaluator evaluator = new MXMLEvaluator(inputStream, ppiNotModelHandler);
             evaluations.add(evaluator.eval(ppi));
         }
         return evaluations;
     }
 
     public static InputStream fromGzippedToBytes(InputStream inputStream, String ext) throws IOException {
-        ByteArrayInputStream byteArrayInputStream = null;
-        OutputStream out;
-        InputStream file = null;
+        InputStream in = null;
+
         try {
             if (ext.equals("zip")) {
-                ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream("zip", inputStream);
-                ZipArchiveEntry entry = (ZipArchiveEntry) in.getNextEntry();
-                return in;
-//                out = new FileOutputStream("temp.mxml");
-//                IOUtils.copy(in, out);
-//                file = new FileInputStream("temp.mxml");
-//                return file;
+                ArchiveInputStream archiveInputStream = new ArchiveStreamFactory().createArchiveInputStream("zip", inputStream);
+                ZipArchiveEntry entry = (ZipArchiveEntry) archiveInputStream.getNextEntry();
+                in = archiveInputStream;
             } else if (ext.equals("gz")) {
-                CompressorInputStream in = new CompressorStreamFactory().createCompressorInputStream("gz", inputStream);
-                return in;
-//                out = new FileOutputStream("temp.mxml");
-//                IOUtils.copy(in, out);
-//                file = new FileInputStream("temp.mxml");
-//                return file;
+                in = new CompressorStreamFactory().createCompressorInputStream("gz", inputStream);
             }
         } catch (ArchiveException e) {
             log.log(Level.SEVERE, "Failed decompressing the file", e);
@@ -171,7 +163,8 @@ public class PPINOTResource {
             log.log(Level.SEVERE, "Failed decompressing the file", e);
             throw new BadRequestException("Invalid compressed file");
         }
-        return file;
+
+        return in;
     }
 
 }

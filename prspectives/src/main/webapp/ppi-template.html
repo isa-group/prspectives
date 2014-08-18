@@ -5,55 +5,28 @@
 		<title>PPINOT Templates</title>
 	    <link rel="stylesheet" href="webjars/bootstrap/2.3.2/css/bootstrap.css"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet">
-        <script src="uploader/angular-file-upload-shim.js"></script>	    
-	     	        
+
 		<script src="webjars/jquery/1.7.2/jquery.js"></script>
         <script src="webjars/angularjs/1.2.21/angular.js"></script>
         <script src="webjars/angularjs/1.2.21/angular-resource.min.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
-        <script src="http://static.scripting.com/github/bootstrap2/js/bootstrap-transition.js"></script>
-		<script src="http://static.scripting.com/github/bootstrap2/js/bootstrap-modal.js"></script>
-		<script src="http://markusslima.github.io/bootstrap-filestyle/js/bootstrap-filestyle.min.js"></script>
         <script src="webjars/ppinot-templates-angular/2.0/ppinot-templates.js"></script>
+
+        <script src="libs/uploader/angular-file-upload-shim.js"></script>
+        <script src="libs/uploader/angular-file-upload.js"></script>
+        <link href="libs/uploader/uploader.css" rel="stylesheet">
+        <script type="text/javascript" src="libs/sparklines/jquery.sparkline.js"></script>
+
         <script src="templates/process.js"></script>
         <script src="templates/templates.js"></script>
+        <script src="templates/modal-upload-log-controller.js"></script>
+        <script src="templates/modal-moreinfo-log-controller.js"></script>
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
-        
-		<script src="uploader/angular-file-upload.js"></script>
-		<link href="uploader/uploader.css" rel="stylesheet">
 
-		<script type="text/javascript" src="sparklines/jquery.sparkline.js"></script>
 
-        <script>
-        	var item = "";
-			function closeDialog () {
-				$('#uploadDialog').modal('hide');
-				$('#moreInfoDialog').modal('hide'); 
-			};
-			function okClicked () {
-				closeDialog ();
-			};
-			function modalOptions(data){
-				item = JSON.parse(data);
-				$("#result table tbody").html("");
-				for (var i=0; i<item.length; i++){
-					drawRow(item[i]);
-				}
-			};
-			function drawRow(rowData) {
-				var row = $("<tr />")
-				$("#result table tbody").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-				row.append($("<td>" + rowData.scope.instances + "</td>"));
-				row.append($("<td class='center'>" + rowData.value + "</td>"));
-				row.append($("<td class='center'>" + "[4,5]" + "</td>"));
-			};
-			function cargaSparlines () {
-				$('.inlinesparkline').sparkline('html',{width:'150', height:'30', lineWidth: 3, spotRadius:3});
-			};
-        </script>
-	    <style>
+        <style>
 			body {
 				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 			}
@@ -90,7 +63,7 @@
 				height:20px;
 				margin-top: 10px;
 			}
-			#moreInfoDialog .text_modal{
+			.moreInfoDialog{
 				padding: 20px 20px 0 20px;
 			}
 			.form-group.bootstrap-filestyle{
@@ -99,13 +72,34 @@
 			.center{
 				text-align: center !important;
 			}
-			#moreInfoDialog{
+			.moreInfoDialog{
 				max-height: 80%;
 				overflow-y: auto;
 			}
 			.graphics{
 				width: 150px;
 			}
+
+            .btn-file {
+                position:relative;
+                overflow:hidden;
+            }
+
+            .btn-file input[type=file] {
+                position: absolute;
+                top: 0;
+                right: 0;
+                min-width: 100%;
+                min-height: 100%;
+                font-size: 100px;
+                text-align: right;
+                filter: alpha(opacity=0);
+                opacity: 0;
+                outline: none;
+                background: white;
+                cursor: inherit;
+                display: block;
+            }
 	    </style>
     </head>
 	<body ng-controller="TemplatesCtrl">
@@ -159,63 +153,34 @@
 					</table>	
 				</div>
 			</div>
-			<div ng-controller="MyCtrl">
-				<div id="uploadDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
-					<div class="text_modal"><input type="file" ng-file-select="onFileSelect($files)" class="filestyle" data-classButton="btn btn-primary"></div>				
-					<div class="modal-footer">
-						<a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
-					</div>
-				</div>
-				<div id="moreInfoDialog" class="modal hide fade in" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true" style="display: none;">
-					<div class="text_modal">
-						<div id="result">
-							<table class="table table-bordered">
-								<thead>
-									<tr>
-										<th class="instances">Instances</th>
-										<th class="last_value center">Value</th>
-										<th class="target center">Time</th>
-									</tr>
-								</thead>
-								<tbody>
-
-								</tbody>
-							</table>
-						</div>
-					</div>				
-					<div class="modal-footer">
-						<a href="#" class="btn" onclick="closeDialog ();">Close</a>
-					</div>
-				</div>
-				<div ng-if="medidas">
-					<table class="table table-bordered">
-						<thead>
-							<tr>
-								<th class="name">Name PPI</th>
-								<th class="last_value center">Last value</th>
-								<th class="target center">Target</th>
-								<th class="graphics center"><a href="#" onClick="cargaSparlines()">Graphics</a></th>
-								<th class="more_info center">More info</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="medida in medidas">
-								<td>{{medida[medida.length-1].scope.processId}}</td>
-								<td class="center">{{medida[medida.length-1].value}}</td>
-								<td class="center">target</td>
-								<td><span class="inlinesparkline">{{medida.values}}</span></td>
-								<td class="center"><a data-toggle="modal" href="#moreInfoDialog" class="btn btn-primary" onClick="modalOptions('{{medida}}')">More</a></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
+            <div ng-if="measures">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="name">PPI Name</th>
+                            <th class="last_value center">Last value</th>
+                            <th class="target center">Target</th>
+                            <th class="graphics center">Evolution</th>
+                            <th class="more_info center">View details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="measure in measures">
+                            <td>{{measure[measure.length-1].ppi.name || measure[measure.length-1].ppi.measuredBy.name}}</td>
+                            <td class="center">{{measure[measure.length-1].value}}</td>
+                            <td class="center">{{measure[measure.length-1].success}}</target></td>
+                            <td><span class="inlinesparkline" values="measure.values" width="150" height="30"></span></td>
+                            <td class="center"><a data-ng-click="moreInfoLog(measure)" class="btn btn-primary">Details</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 		</div>
 		<div class="well" style="text-align:right;">
 			<div class="container">
-	    		<input class="btn btn-primary" type="submit" ng-click="save();" value="Save PPIs">
-	    		<a data-toggle="modal" href="#uploadDialog" class="btn btn-primary">Upload Log</a>
-			</div>
+	    		<a data-ng-click="loadLog()" class="btn btn-primary">Upload Log</a>
+                <input class="btn btn-primary" type="submit" ng-click="save()" value="Save PPIs">
+            </div>
 		</div>
 	</body>
 </html>
