@@ -1,0 +1,11 @@
+<div class="modal-header">
+    <button type="button" class="close" data-ng-click="cancel()">×</button>
+    <h3 id="removeModalLabel">Delete model</h3>
+</div>
+<div class="modal-body">
+    <p>Model <em>{{model.name}}</em> is going to be deleted. {{shareHint}} Do you want to continue?</p>
+</div>
+<div class="modal-footer">
+    <button class="btn" data-ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" data-ng-click="ok()">Accept</button>
+</div>

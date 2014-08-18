@@ -3,9 +3,8 @@ angular.module('organizationalApp', ['navbarModule','loginModule','listHandling'
       return {
         restrict: 'A',
         replace: true,
-        transclude: true,
         scope: { model: '=', positions: '=', placeholder: '@', add: '@', detailsCollapsed: '@'},
-        template: '<ul class="positions" ng-transclude>' +
+        template: '<ul class="positions">' +
                     '<li class="liposition" ng-repeat="el in positions">' +
                        '<form style="display:inline-block" class="form-inline"><input type="text" ng-model="el.name" placeholder="{{placeholder}}" /></form>'+
                        '<ul class="actions inline">'+

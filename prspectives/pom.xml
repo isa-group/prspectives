@@ -59,7 +59,6 @@
 							<resourcesAsCSV>src/main/webapp</resourcesAsCSV>
 						</baseResource>
 					</webAppConfig>
-
 				</configuration>
 			</plugin>
 		</plugins>
@@ -94,14 +93,14 @@
 
 		<!-- WebJars dependencies -->
 		<dependency>
-			<groupId>org.webjars</groupId>
-			<artifactId>angularjs</artifactId>
-			<version>1.0.7</version>
+		    <groupId>org.webjars</groupId>
+		    <artifactId>angularjs</artifactId>
+            <version>1.2.21</version>
 		</dependency>
 		<dependency>
-			<groupId>org.webjars</groupId>
-			<artifactId>angular-ui-bootstrap</artifactId>
-			<version>0.6.0-1</version>
+		    <groupId>org.webjars</groupId>
+		    <artifactId>angular-ui-bootstrap</artifactId>
+            <version>0.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -115,7 +114,6 @@
 		</dependency>
 
 		<!-- PPINOT -->
-
 		<dependency>
 			<groupId>es.us.isa.bpmn</groupId>
 			<artifactId>bpmn-model</artifactId>
@@ -222,12 +220,16 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 
 
 		<dependency>

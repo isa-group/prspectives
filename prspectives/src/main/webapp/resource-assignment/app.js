@@ -89,11 +89,11 @@ function AssignmentCtrl($scope, $http, $log) {
     };
 
     $scope.load = function(currentModel) {
-        $scope.bpmnModel = new BPMNModel(currentModel.modelId, currentModel.url);
+        $scope.bpmnModel = new BPMNModel(currentModel);
         $scope.bpmnModel.load().then(function () {
             $scope.$apply('bpmnModel');
 
-            $http.get(currentModel.url+"/json").success(function(data) {
+            $http.get(currentModel.modelLinks.model).success(function(data) {
                 if (! data.extensions) {
                     data.extensions = {};
                 }
@@ -124,7 +124,7 @@ function AssignmentCtrl($scope, $http, $log) {
     });
 
     $scope.loadOrganization = function(modelId) {
-        $http.get($scope.navbar.models[modelId].url+"/json").success(function(data) {
+        $http.get($scope.navbar.models[modelId].modelLinks.model).success(function(data) {
             $scope.organization = data.model;
         });
     };
@@ -139,7 +139,7 @@ function AssignmentCtrl($scope, $http, $log) {
     $scope.save = function () {
         $log.info("Saving model...");
         $log.info($scope.raw);
-        $http.put($scope.navbar.currentModel.url+"/json", $scope.raw);
+        $http.put($scope.navbar.currentModel.modelLinks.model, $scope.raw);
     };
     
     $scope.getOldAssignmentValue = function(processName,activity){

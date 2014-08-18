@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import es.us.isa.bpms.model.metamodels.BpmnMetamodel;
+import es.us.isa.bpms.model.metamodels.Metamodel;
 import org.neo4j.cypher.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -16,7 +18,6 @@ import org.springframework.cache.annotation.Cacheable;
 
 import com.google.gson.Gson;
 
-import es.us.isa.bpms.model.ConverterHelper;
 import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.repository.ModelRepository;
 import es.us.isa.cristal.BPEngine;
@@ -31,18 +32,21 @@ public class Neo4JAnalyserFactory implements AnalyserFactory{
 
 	@Autowired
     private ModelRepository modelRepository;
-	
-	@Autowired
-    private ConverterHelper converterHelper;
-	
+
 	@Override
 	public RALAnalyser getAnalyser(String processId, String modelId, String organizationId, String assignment) throws Exception {
 		String context = organizationId==null? "analyser" : "assignment";
 		//System.out.println("CREATE NEW ANALYZER:" + ralExpr);
 		
 		Model m = getModel(context, modelId);
-		//System.out.println(bpmn);
-		String orgId = organizationId==null? m.getOrganization() : organizationId;
+
+        if (! (m.getMetamodel() instanceof BpmnMetamodel)) {
+            throw new RuntimeException("Model is not a BPMN model");
+        }
+        BpmnMetamodel metamodel = (BpmnMetamodel) m.getMetamodel();
+
+        //System.out.println(bpmn);
+		String orgId = organizationId==null? metamodel.getOrganization(m) : organizationId;
 		
 		String bpmn = getBpmn(m,context, modelId);
 		
@@ -72,10 +76,10 @@ public class Neo4JAnalyserFactory implements AnalyserFactory{
 		
 		String dirName = System.getenv("TEMP") + File.separator + "neo4j-" + UUID.randomUUID().toString();
 		GraphDatabaseService graphDb = new GraphDatabaseFactory()
-		.newEmbeddedDatabaseBuilder(dirName)
-		.setConfig(GraphDatabaseSettings.node_keys_indexable,"name, position, role, unit")
-		.setConfig(GraphDatabaseSettings.node_auto_indexing, "true")
-		.newGraphDatabase();
+            .newEmbeddedDatabaseBuilder(dirName)
+            .setConfig(GraphDatabaseSettings.node_keys_indexable,"name, position, role, unit")
+            .setConfig(GraphDatabaseSettings.node_auto_indexing, "true")
+            .newGraphDatabase();
 		engine = new ExecutionEngine( graphDb,StringLogger.logger(new File(dirName + File.separator + "log.log")) );
 		engine.execute(doc.getCypherCreateQuery());
 		
@@ -83,11 +87,12 @@ public class Neo4JAnalyserFactory implements AnalyserFactory{
     }
  
 	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
-    private String getBpmn(Model m, String context, String modelId){
-		return converterHelper.createAndStoreXml(m);
+    private String getBpmn(Model m, String context, String modelId) {
+        m.updateXmlFromModel();
+        return m.getXml();
     }
-	
-	@Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
+
+    @Cacheable(value = "modelCache", key = "#modelId.concat('/').concat(#context)")
     private Model getModel(String context, String modelId){
     	
     	return modelRepository.getModel(modelId);

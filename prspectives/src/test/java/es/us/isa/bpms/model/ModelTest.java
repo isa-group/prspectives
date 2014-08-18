@@ -1,5 +1,8 @@
 package es.us.isa.bpms.model;
 
+import es.us.isa.bpms.model.metamodels.BpmnMetamodel;
+import es.us.isa.bpms.model.metamodels.OrgMetamodel;
+import es.us.isa.ppinot.resource.PPINOTModel2XmlConverter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,8 +18,8 @@ import java.util.Map;
 public class ModelTest {
     @Test
     public void testCreateLinks() {
-        Model bpmnModel = new Model("mid", "name", Model.BPMN20);
-        Model orgModel = new Model("mid", "name", Model.ORG);
+        Model bpmnModel = new Model("mid", "name", new BpmnMetamodel(new PPINOTModel2XmlConverter()));
+        Model orgModel = new Model("mid", "name", new OrgMetamodel());
         Map<String, URI> links = bpmnModel.createLinks(UriBuilder.fromPath("/"));
 
         Assert.assertEquals("/service/editor?id=mid", links.get("editor").toString());
@@ -28,9 +31,9 @@ public class ModelTest {
     }
 
     @Test public void testCreateExports() {
-        Model orgModel = new Model("mid", "name", Model.ORG);
+        Model orgModel = new Model("mid", "name", new OrgMetamodel());
         Map<String, URI> exports = orgModel.createExports(UriBuilder.fromPath("/"));
 
-        Assert.assertEquals("/service/model/mid/json", exports.get("JSON").toString());
+        Assert.assertEquals("/service/models/mid/json", exports.get("JSON").toString());
     }
 }

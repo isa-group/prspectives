@@ -27,7 +27,6 @@ import org.springframework.cache.annotation.Cacheable;
 
 import com.google.gson.Gson;
 
-import es.us.isa.bpms.model.ConverterHelper;
 import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.repository.ModelRepository;
 import es.us.isa.bpms.users.UserService;

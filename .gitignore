@@ -6,3 +6,4 @@ target
 *.iml
 *.sublime-workspace
 *.sublime-project
+**/null/neo4j-*

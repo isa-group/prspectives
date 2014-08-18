@@ -45,8 +45,9 @@
 
 	    </style>
         <script src="webjars/jquery/1.7.2/jquery.js"></script>
-        <script src="webjars/angularjs/1.0.7/angular.js"></script>
-        <script src="webjars/angular-ui-bootstrap/0.6.0/ui-bootstrap-tpls.js"></script>
+        <script src="webjars/angularjs/1.2.21/angular.js"></script>
+        <script src="webjars/angularjs/1.2.21/angular-resource.js"></script>
+        <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
         <script src="libs/angular-taglist-directive.js"></script>
         <script src="organizational/app.js"></script>
         <script src="common/modelhandler.js"></script>
@@ -62,7 +63,7 @@
     <h2>{{navbar.currentModel.name}}</h2>
     <tabset>
         <tab heading="Units and Positions">
-            <form addform list="model.units" placeholder="Unit name" button="Add new unit"></form>
+            <form addform list="model.units" placeholder="Organizational unit name" button="Add new organizational unit"></form>
 
             <div class="well" ng-repeat="unit in model.units">
                 <div class="pull-right">
@@ -70,13 +71,13 @@
                     <button ng-show="poscollapsed && ! unit.positions.length == 0" class="btn" ng-click="poscollapsed = false">Show people and role information</button>
                 </div>
 
-                <h3>Unit: {{unit.name}} <a data-remove data-from="model.units" data-index="{{$index}}"></a></h3>
+                <h3>Organizational Unit: {{unit.name}} <a data-remove data-from="model.units" data-index="{{$index}}"></a></h3>
 
-                <ul positionslist model="model" positions="unit.positions" details-collapsed="{{poscollapsed}}" placeholder="Name of the position" add="Add a new position to this unit">
+                <ul positionslist model="model" positions="unit.positions" details-collapsed="{{poscollapsed}}" placeholder="Name of the position" add="Add a new position to this organizational unit">
                 </ul>
 
                 <hr/>
-                <form addform list="unit.positions" placeholder="Position name" button="Add a new position to this unit"></form>
+                <form addform list="unit.positions" placeholder="Position name" button="Add a new position to this organizational unit"></form>
             </div>
         </tab>
 

@@ -4,6 +4,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ public class ModelInfo {
 
     private Map<String, URI> links;
     private Map<String, URI> export;
+    private Map<String, URI> modelLinks;
 
     public String getModelId() {
         return modelId;
@@ -53,6 +55,8 @@ public class ModelInfo {
         this.modelId = modelId;
         this.name = modelId;
         this.url = url;
+        this.links = new HashMap<String, URI>();
+        this.export = new HashMap<String, URI>();
     }
 
     public String getName() {
@@ -123,5 +127,12 @@ public class ModelInfo {
         this.export = export;
     }
 
+    public Map<String, URI> getModelLinks() {
+        return modelLinks;
+    }
+
+    public void setModelLinks(Map<String, URI> modelLinks) {
+        this.modelLinks = modelLinks;
+    }
 }
 

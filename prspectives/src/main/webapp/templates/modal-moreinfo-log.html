@@ -1,0 +1,21 @@
+<div class="moreInfoDialog">
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th class="instances">Instances</th>
+            <th class="last_value center">Value</th>
+            <th class="target center">Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr data-ng-repeat="m in info.measures">
+            <td>{{m.scope.instances}}</td>
+            <td class='center'>{{m.value}}</td>
+            <td class='center'>[4,5]</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <a data-ng-click="cancel()">Close</a>
+</div>

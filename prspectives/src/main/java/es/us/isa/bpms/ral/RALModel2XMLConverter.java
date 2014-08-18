@@ -21,6 +21,7 @@ import bpmn.TPotentialOwner;
 import bpmn.TResourceAssignmentExpression;
 import bpmn.TResourceRole;
 import bpmn.TTask;
+import org.springframework.core.io.Resource;
 import raci2bpmn.ModelHandler;
 import raci2bpmn.ProcessHandler;
 import es.us.isa.bpms.model.Model;
@@ -44,6 +45,10 @@ public class RALModel2XMLConverter extends PPINOTModel2XmlConverter {
 	public RALModel2XMLConverter(String bpmn20XsdPath) {
 		super(bpmn20XsdPath);
 	}
+
+    public RALModel2XMLConverter(Resource bpmn20Xsd) {
+        super(bpmn20Xsd);
+    }
 
 	@Override
 	public StringWriter transformToXml(Model m) {

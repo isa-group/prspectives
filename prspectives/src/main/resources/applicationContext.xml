@@ -19,45 +19,46 @@
     <context:annotation-config />
     <context:component-scan base-package="es.us.isa.ppinot.resource"/>
     <context:component-scan base-package="es.us.isa.bpms"/>
+    <context:component-scan base-package="es.us.isa.prspectives"/>
 
-	<!-- Stencilsets and extensions -->
-	<mvc:resources mapping="/editor/stencilsets/**" location="classpath:/stencilsets/" />
 
-	<!-- Webjars -->
-	<mvc:resources mapping="/webjars/**"
-		location="classpath:/META-INF/resources/webjars/" order="-1" />
-	<!-- SpringMVC Resteasy configuration -->
-	<import resource="classpath:springmvc-resteasy.xml" />
-	<bean id="resteasy.handlerMapping" parent="abstract.resteasy.handlerMapping">
-		<property name="order" value="10" />
-		<property name="throwNotFound" value="false" />
-	</bean>
-	<!-- Necessary for socialauth authentication -->
-	<bean
-		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
-		<property name="order" value="0" />
-	</bean>
-	<bean
-		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
-	<bean id="viewResolver"
-		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
-		<property name="viewClass"
-			value="org.springframework.web.servlet.view.JstlView" />
-		<property name="prefix" value="/WEB-INF/jsp/" />
-		<property name="suffix" value=".jsp" />
-	</bean>
-	<!-- Default handler for other resources -->
-	<mvc:default-servlet-handler />
 
-	<!-- Repository -->
-	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
-	<bean id="modelRepository" class="es.us.isa.bpms.repository.FileSystemRepository">
-		<property name="directory" value="${PPINOT_REPOSITORY_DIRECTORY}" />
-	</bean>
+    <!-- Stencilsets and extensions -->
+    <mvc:resources mapping="/editor/stencilsets/**" location="classpath:/stencilsets/"/>
 
-	<!-- XML Converter <bean class="es.us.isa.ppinot.resource.PPINOTModel2XmlConverter"> 
-		<property name="bpmn20Xsd" value="/WEB-INF/xsd/BPMN20.xsd"/> </bean> -->
+    <!-- Webjars -->
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" order="-1"/>
+    <!-- SpringMVC Resteasy configuration -->
+    <import resource="classpath:springmvc-resteasy.xml"/>
+    <bean id="resteasy.handlerMapping" parent="abstract.resteasy.handlerMapping">
+        <property name="order" value="10"/>
+        <property name="throwNotFound" value="false"/>
+    </bean>    
+    <!-- Necessary for socialauth authentication -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+        <property name="order" value="0" />
+    </bean>
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    <!-- Default handler for other resources -->
+    <mvc:default-servlet-handler/>
+
+    <!-- Repository -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+    <bean id="modelRepository" class="es.us.isa.bpms.repository.SharedModelRepository">
+        <constructor-arg ref="sharedModelHandler"/>
+    </bean>
+    <bean id="sharedModelHandler" class="es.us.isa.bpms.repository.SharedModelHandler"/>
+    <bean id="workspaceFactory" class="es.us.isa.bpms.repository.FileWorkspaceFactory">
+        <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
+    </bean>
+
+    <bean class="es.us.isa.prspectives.config.MetamodelsConfig"/>
 
     <!--   Resources  -->
     <bean id="repositoryResource" class="es.us.isa.bpms.model.ModelsResource">
