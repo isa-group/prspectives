@@ -1,82 +1,29 @@
 <!doctype html>
-<html ng-app="ralApp">
+<html ng-app="prspectives.ral">
 	<head>
 		<meta charset="utf-8">
 		<title>Resource assignment</title>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet"/>
         <link href="manager/css/angular-taglist-directive.css" rel="stylesheet"/>
-        <link href="resource-assignment/analyser-style.css" rel="stylesheet" />
-	    <style>
-	      html, body{
-	      	min-width: 1200px;
-	      }
-          body {
-            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-          }
+        <link href="resource-assignment/resource-prsp.css" rel="stylesheet" />
 
-          .positions ul.actions {
-            display: none;
-          }
-
-          .positions li.liposition:hover > ul.actions {
-            display: inline;
-          }
-
-          .positions li.liposition {
-            margin-bottom: 1em;
-          }
-
-          input.templatefield, .templatefield{
-	      	border: 0;
-	      	box-shadow: none;
-	      	-webkit-box-shadow: none;
-	      	-mox-box-shadow: none;
-		    margin-bottom: 0;
-		    font-size: 14px;
-            font-color: black;
-	      }
-	      input.templatefield:focus, .templatefield:focus {
-	      	border: 1px solid rgba(82, 168, 236, 0.8);
-	      }
-	      input.templatefield:hover, .templatefield:hover{
-		    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-		    outline: 0;
-		    outline: thin dotted \9;
-	      }
-
-	    </style>
         <script src="webjars/jquery/1.7.2/jquery.min.js"></script>
         <script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
         <script src="webjars/angularjs/1.2.21/angular.js"></script>
         <script src="webjars/angularjs/1.2.21/angular-resource.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
-        <script src="templates/process.js"></script>
+
         <script src="resource-assignment/app.js"></script>
+        <script src="resource-assignment/rasci-controller.js"></script>
+        <script src="resource-assignment/ral-controller.js"></script>
+        <script src="common/process.js"></script>
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
         <script src="common/ng-navbar.js"></script>
         <script src="libs/parser/antlr3-all-min.js"></script>
         <script src="libs/parser/RALLexer.js"></script>
         <script src="libs/parser/RALParser.js"></script>
-        <script>
-        	
-        		function runToggle(divId, aid){
-        			$( "#" +  divId ).toggle("blind", {}, 500, changeSymbol(aid));
-        		}
-        		
-        		function changeSymbol(aid){
-        			var element = document.getElementById(aid);
-        			if(element.innerHTML=='<i class="icon-plus-sign"></i>'){
-        				element.innerHTML="<i class=\"icon-minus-sign\"></i>";
-        			}else{
-        				element.innerHTML="<i class=\"icon-plus-sign\"></i>";
-        			}
-        		}
-        
-        </script>
     </head>
 
 <body ng-controller="AssignmentCtrl">
@@ -86,7 +33,7 @@
 <div class="container">
     <h2>Resource assignment of model {{navbar.currentModel.name}}</h2>
     <p class="well">
-        Organizational model: <select ng-model="assignments.organizationalModel" ng-options="model.modelId as model.name for (key, model) in navbar.models | array | filter:{type: 'Organization'}"></select>
+        Organizational model: <select ng-model="assignments.organizationalModel" ng-options="model.modelId as model.name for (key, model) in navbar.models | toArray | filter:{type: 'Organization'}"></select>
         <span ng-hide="! assignments.organizationalModel">
             <a class="btn btn-mini" ng-click="loadOrganization(assignments.organizationalModel)" tooltip="Reloads organizational model"><i class="icon-refresh"></i> Reload</a>
             <a class="btn btn-mini" ng-href="{{navbar.models[assignments.organizationalModel].links.editor}}" tooltip="Open organizational model in new window" target="_blank"><i class="icon-share"></i> Open model</a>
@@ -103,20 +50,31 @@
 
             <hr/>
 
-            <div id="ralAssignment" ng-show="assignments[process.processName].active == 'ral'">
+            <div ng-show="assignments[process.processName].active == 'ral'" ng-controller="RALCtrl as ral">
                 <form class="form-horizontal">
                     <div class="control-group" ng-repeat="activity in process.activityNames">
                         <label class="control-label">{{activity}}</label>
                         <div class="controls">
-                            <input class="input-xxlarge" id="{{'input-' + activity}}" type="text" ng-blur="findPerformers(activity,process.processName,assignments.organizationalModel);" ng-model="assignments[process.processName].ralAssignment[activity]" placeholder="RAL Expression" />
-                        	<div class="infoResult" id="{{'info-' + getIdFromName(activity)}}"></div>
-                        	<div id="{{'report-' + getIdFromName(activity)}}" style="display:none;"></div>
+                            <input class="input-xxlarge" type="text"
+                                   ng-blur="ral.findPerformers(activity, process.processName, assignments.organizationalModel);"
+                                   ng-model="assignments[process.processName].ralAssignment[activity]"
+                                   placeholder="RAL Expression" />
+                            <img src="common/loading.gif" data-ng-show="ral.analysis[activity].isLoading"/>
+                            <div ng-class="{'alert-error': ral.analysis[activity].error, 'alert-success': ral.analysis[activity].success, 'alert': ral.analysis[activity].info}" class="infoResult">
+                                <a data-ng-show="ral.analysis[activity].report" data-ng-click="ral.runToggle(activity)"><i data-ng-class="{'icon-minus-sign': ral.analysis[activity].reportToggle,'icon-plus-sign': !this.analysis[activity].reportToggle}"></i></a>
+                                <span>{{ral.analysis[activity].info}}</span>
+                            </div>
+                            <div class="bs-callout"
+                                 data-ng-class="{'bs-callout-danger': ral.analysis[activity].isError(), 'bs-callout-warning': ral.analysis[activity].warning, 'bs-callout-info': ral.analysis[activity].success}"
+                                 data-ng-show="ral.analysis[activity].showReport()">
+                                <div style="padding: 15px 20px;"><h4>{{ral.analysis[activity].report.title}}</h4><p>{{ral.analysis[activity].report.body}}</p></div>
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <div id="rasciAssignment" ng-show="assignments[process.processName].active == 'rasci'">
+            <div ng-show="assignments[process.processName].active == 'rasci'" ng-controller="RASCICtrl as rasci">
                 <div class="row-fluid">
                     <div class="span8">
                         <table class="table table-bordered">
@@ -126,24 +84,24 @@
                             </tr>
                             <tr ng-repeat="activity in process.activityNames">
                                 <th>{{activity}}</th>
-                                <td ng-repeat="role in organization.roles" ng-click="loadCell({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})">
-                                    {{depict({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})}}
+                                <td ng-repeat="role in organization.roles" ng-click="rasci.loadCell({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})">
+                                    {{rasci.depict({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})}}
                                 </td>
                             </tr>
                         </table>
                     </div>
-                    <div id="racidetail" class="span4" ng-show="rasciCell">
-                        <h4>Binding of role {{rasciCell.role}} in activity {{rasciCell.activity}}</h4>
+                    <div class="span4" ng-show="rasci.showDetails()">
+                        <h4>Binding of role {{rasci.rasciCell.role}} in activity {{rasci.rasciCell.activity}}</h4>
                         <form class="well">
-                            <div ng-repeat="(key, value) in rasciRoles">
+                            <div ng-repeat="(key, value) in rasci.rasciRoles">
                                 <label class="checkbox">
-                                    <input type="checkbox" ng-model="rasciCell[key].enabled" checked="checked"/>{{key}}
+                                    <input type="checkbox" ng-model="rasci.rasciCell[key].enabled" checked="checked"/>{{key}}
                                 </label>
-                                <input type="text" class="input-xlarge" ng-model="rasciCell[key].binding" placeholder="Binding expression"/>
+                                <input type="text" class="input-xlarge" ng-model="rasci.rasciCell[key].binding" placeholder="Binding expression"/>
                                 <hr>
                             </div>
-                            <a ng-click="saveCell(rasciCell)" class="btn btn-primary">Ok</a>
-                            <a ng-click="rasciCell = null" class="btn">Cancel</a>
+                            <a ng-click="rasci.saveCell()" class="btn btn-primary">Ok</a>
+                            <a ng-click="rasci.cancelDetails()" class="btn">Cancel</a>
                         </form>
                     </div>
                 </div>
@@ -153,7 +111,7 @@
 
 </div>
 <div class="well" style="text-align:right;">
-    <input class="btn btn-primary" type="submit" ng-click="save();" value="Save Model">
+    <a class="btn btn-primary" data-ng-click="save()"><img src="common/loading.gif" data-ng-show="saveStatus"/> Save Model</a>
 </div>
 </body>
 </html>

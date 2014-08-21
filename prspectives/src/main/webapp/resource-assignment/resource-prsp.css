@@ -1,0 +1,97 @@
+html, body {
+    min-width: 1200px;
+}
+
+body {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+
+.infoResult{
+    padding-top: 3px;
+    padding-bottom: 5px;
+    display: inline-block;
+    margin-bottom: 0px;
+    padding-right: 12px;
+    padding-left: 12px;
+    vertical-align: middle;
+}
+
+.alert a{
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 900;
+    float: right;
+    display: inline-block;
+    margin-left: 5px;
+    width: 15px;
+    text-align: center;
+    color: #c09853;
+}
+.alert a:HOVER{
+    color: #80673C;
+}
+.alert-success a{
+    color: #468847;
+}
+.alert-success a:HOVER{
+    color: #294B29;
+}
+
+.alert-error a{
+    color: #b94a48;
+}
+.alert-error a:HOVER{
+    color: #8A2C2B;
+}
+.bs-callout{
+    border-left-style: solid;
+    border-left-width: 3px;
+    box-sizing: border-box;
+    color: rgb(51, 51, 51);
+    display: block;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 10px;
+    padding: 0px;
+    width:100%;
+    max-width:544px;
+}
+
+.bs-callout-danger{
+    background-color: rgb(253, 247, 247);
+    border-color: rgb(217, 83, 79);
+}
+
+.bs-callout-warning{
+    background-color: rgb(252, 248, 242);
+    border-color: rgb(240, 173, 78);
+}
+.bs-callout-info{
+    background-color: rgb(244, 250, 244);
+    border-color: #468847;
+}
+
+.bs-callout-danger h4 {
+    color: #d9534f;
+}
+
+.bs-callout-warning h4 {
+    color: #f0ad4e;
+}
+
+.bs-callout-info h4 {
+    color: #468847;
+}
+
+.bs-callout h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+h4, .h4 {
+    font-size: 18px;
+}
