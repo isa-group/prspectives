@@ -9,7 +9,13 @@ function RALCtrl($scope, $http, $log) {
     this.oldAssignments = new Array();
     this.analysis = {};
 
-    this.findAllPerformers(this.scope.process.processName);
+    var self = this;
+
+    $scope.$watch("process", function(process) {
+        if (process)
+            self.findAllPerformers(process.processName);
+    });
+
 
 }
 

@@ -3,7 +3,43 @@ html, body {
 }
 
 body {
-    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+    padding-top: 40px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+
+.content {
+    padding-left: 20px;
+}
+
+.sidebar {
+    padding-top: 20px;
+    top: 40px;
+    left: 0px;
+    width: 230px;
+    margin-left: 0px;
+    height: 100%;
+    background-color: #f5f5f5;
+    border-right-color: rgb(227, 227, 227);
+    border-right-style: solid;
+    border-right-width: 1px;
+}
+
+.separated-top {
+    margin-top: 15px;
+    clear: both;
+}
+
+.separated-bottom {
+    margin-bottom: 15px;
+}
+
+.column {
+    width:50%;
+    float:left;
+}
+
+
+.container {
+    margin: 0px;
 }
 
 .infoResult{
@@ -94,4 +130,83 @@ body {
 
 h4, .h4 {
     font-size: 18px;
+}
+
+
+.tabcontent{
+	background-color: #ffffff;
+	border: 1px solid #ddd;
+	border-top: 0px;
+	padding: 15px;
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+}
+.operationsHeader{
+	color: #FFFFFF;
+	padding-left: 10px;
+	margin-bottom: 10px !important;
+	font-style: italic;
+	font-weight: bold;
+}
+.operationsMenu{
+	font-size:12px;
+	color:#EEEEEE;
+
+}
+
+.operationsMenu li a{
+	color: #EEEEEE !important;
+	border-left:0px !important;
+	border-right:0px !important;
+	border-top: 1px solid #858585 !important;
+	border-bottom: 1px solid #858585 !important;
+	border-radius: 0px !important;
+	cursor: pointer;
+	padding: 5px 10px;
+}
+
+.operationsMenu li a:HOVER{
+	/*  background-color: #0088cc !important;  to use the blue of bootstrap*/
+	background-color: #858585 !important;
+	color:#ffffff !important;
+}
+.positions ul.actions {
+	display: none;
+}
+
+.positions li.liposition:hover>ul.actions {
+	display: inline;
+}
+
+.positions li.liposition {
+	margin-bottom: 1em;
+}
+
+input.templatefield,.templatefield {
+	border: 0;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+	-mox-box-shadow: none;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-color: black;
+}
+
+input.templatefield:focus,.templatefield:focus {
+	border: 1px solid rgba(82, 168, 236, 0.8);
+}
+
+input.templatefield:hover,.templatefield:hover {
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px
+		rgba(82, 168, 236, .6);
+	outline: 0;
+	outline: thin dotted \9;
+}
+
+#tabset ul{
+	margin:0px;
 }

@@ -61,7 +61,8 @@ angular.module('navbarModule', ['loginModule', 'prspectives.modelHandler', 'ui.b
 
             // Loads the current model
             $scope.$watch(function() {return $location.path();}, function(path) {
-                var modelId = path.substr(1);
+                var pathList = path.split('/');
+                var modelId = pathList[1];
                 $scope.navbar.currentModelId = modelId;
                 updateModel();
             });

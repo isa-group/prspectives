@@ -2,7 +2,7 @@
 <html ng-app="prspectives.ral">
 	<head>
 		<meta charset="utf-8">
-		<title>Resource assignment</title>
+		<title>Resource perspective</title>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet"/>
         <link href="webjars/bootstrap/2.3.2/css/bootstrap-responsive.css" rel="stylesheet"/>
         <link href="manager/css/angular-taglist-directive.css" rel="stylesheet"/>
@@ -12,11 +12,16 @@
         <script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
         <script src="webjars/angularjs/1.2.21/angular.js"></script>
         <script src="webjars/angularjs/1.2.21/angular-resource.js"></script>
+        <script src="webjars/angularjs/1.2.21/angular-route.js"></script>
         <script src="webjars/angular-ui-bootstrap/0.8.0/ui-bootstrap-tpls.js"></script>
 
         <script src="resource-assignment/app.js"></script>
-        <script src="resource-assignment/rasci-controller.js"></script>
-        <script src="resource-assignment/ral-controller.js"></script>
+        <script src="resource-assignment/main-controller.js"></script>
+        <script src="resource-assignment/assignment/assignment-controller.js"></script>
+        <script src="resource-assignment/assignment/rasci-controller.js"></script>
+        <script src="resource-assignment/assignment/ral-controller.js"></script>
+        <script src="resource-assignment/analyser/analyser-controller.js"></script>
+        <script src="resource-assignment/analyser/select-operation-controller.js"></script>
         <script src="common/process.js"></script>
         <script src="common/modelhandler.js"></script>
         <script src="common/ng-login.js"></script>
@@ -26,92 +31,31 @@
         <script src="libs/parser/RALParser.js"></script>
     </head>
 
-<body ng-controller="AssignmentCtrl">
+<body ng-controller="MainCtrl">
 
 <topbar data-context="navbar" data-title="Resource Assignment"></topbar>
 
 <div class="container">
-    <h2>Resource assignment of model {{navbar.currentModel.name}}</h2>
-    <p class="well">
-        Organizational model: <select ng-model="assignments.organizationalModel" ng-options="model.modelId as model.name for (key, model) in navbar.models | toArray | filter:{type: 'Organization'}"></select>
-        <span ng-hide="! assignments.organizationalModel">
-            <a class="btn btn-mini" ng-click="loadOrganization(assignments.organizationalModel)" tooltip="Reloads organizational model"><i class="icon-refresh"></i> Reload</a>
-            <a class="btn btn-mini" ng-href="{{navbar.models[assignments.organizationalModel].links.editor}}" tooltip="Open organizational model in new window" target="_blank"><i class="icon-share"></i> Open model</a>
-        </span>
-    </p>
-    <tabset>
-        <tab ng-repeat="process in bpmnModel.processes | filter:(process.activityNames.length == 0)" heading="{{process.processName}}">
-            <div style="text-align:center;">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary" ng-model="assignments[process.processName].active" btn-radio="'ral'">Assignment by RAL Expression</button>
-                    <button type="button" class="btn btn-primary" ng-model="assignments[process.processName].active" btn-radio="'rasci'">Assignment by RASCI matrix</button>
-                </div>
-            </div>
+    <div class="row">
+        <div class="span2 sidebar affix">
+            <ul class="nav nav-list">
+                <li class="nav-header">Resource perspective</li>
+                <li class="divider"></li>
 
-            <hr/>
+                <li class="nav-header" ng-repeat-start="(key, process) in bpmnModel.processes | filter:(process.activityNames.length == 0)">{{process.processName}}</li>
+                <li data-ng-class="{active: isActive(key, 'assignment')}">
+                    <a data-ng-href="{{'#/'+navbar.currentModelId+'/'+key+'/assignment'}}">Resource assignment</a>
+                </li>
+                <li ng-repeat-end data-ng-class="{active: isActive(key, 'analysis')}">
+                    <a data-ng-href="{{'#/'+navbar.currentModelId+'/'+key+'/analysis'}}">Analysis</a>
+                </li>
+            </ul>
 
-            <div ng-show="assignments[process.processName].active == 'ral'" ng-controller="RALCtrl as ral">
-                <form class="form-horizontal">
-                    <div class="control-group" ng-repeat="activity in process.activityNames">
-                        <label class="control-label">{{activity}}</label>
-                        <div class="controls">
-                            <input class="input-xxlarge" type="text"
-                                   ng-blur="ral.findPerformers(activity, process.processName, assignments.organizationalModel);"
-                                   ng-model="assignments[process.processName].ralAssignment[activity]"
-                                   placeholder="RAL Expression" />
-                            <img src="common/loading.gif" data-ng-show="ral.analysis[activity].isLoading"/>
-                            <div ng-class="{'alert-error': ral.analysis[activity].error, 'alert-success': ral.analysis[activity].success, 'alert': ral.analysis[activity].info}" class="infoResult">
-                                <a data-ng-show="ral.analysis[activity].report" data-ng-click="ral.runToggle(activity)"><i data-ng-class="{'icon-minus-sign': ral.analysis[activity].reportToggle,'icon-plus-sign': !this.analysis[activity].reportToggle}"></i></a>
-                                <span>{{ral.analysis[activity].info}}</span>
-                            </div>
-                            <div class="bs-callout"
-                                 data-ng-class="{'bs-callout-danger': ral.analysis[activity].isError(), 'bs-callout-warning': ral.analysis[activity].warning, 'bs-callout-info': ral.analysis[activity].success}"
-                                 data-ng-show="ral.analysis[activity].showReport()">
-                                <div style="padding: 15px 20px;"><h4>{{ral.analysis[activity].report.title}}</h4><p>{{ral.analysis[activity].report.body}}</p></div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
+        </div>
+        <div class="span10 offset2 content" data-ng-view>
 
-            <div ng-show="assignments[process.processName].active == 'rasci'" ng-controller="RASCICtrl as rasci">
-                <div class="row-fluid">
-                    <div class="span8">
-                        <table class="table table-bordered">
-                            <tr>
-                                <th>Activities</th>
-                                <th ng-repeat="role in organization.roles">{{role.name}}</th>
-                            </tr>
-                            <tr ng-repeat="activity in process.activityNames">
-                                <th>{{activity}}</th>
-                                <td ng-repeat="role in organization.roles" ng-click="rasci.loadCell({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})">
-                                    {{rasci.depict({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})}}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="span4" ng-show="rasci.showDetails()">
-                        <h4>Binding of role {{rasci.rasciCell.role}} in activity {{rasci.rasciCell.activity}}</h4>
-                        <form class="well">
-                            <div ng-repeat="(key, value) in rasci.rasciRoles">
-                                <label class="checkbox">
-                                    <input type="checkbox" ng-model="rasci.rasciCell[key].enabled" checked="checked"/>{{key}}
-                                </label>
-                                <input type="text" class="input-xlarge" ng-model="rasci.rasciCell[key].binding" placeholder="Binding expression"/>
-                                <hr>
-                            </div>
-                            <a ng-click="rasci.saveCell()" class="btn btn-primary">Ok</a>
-                            <a ng-click="rasci.cancelDetails()" class="btn">Cancel</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </tab>
-    </tabset>
-
-</div>
-<div class="well" style="text-align:right;">
-    <a class="btn btn-primary" data-ng-click="save()"><img src="common/loading.gif" data-ng-show="saveStatus"/> Save Model</a>
+        </div>
+    </div>
 </div>
 </body>
 </html>

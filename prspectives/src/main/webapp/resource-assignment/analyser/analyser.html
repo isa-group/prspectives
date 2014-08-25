@@ -1,0 +1,81 @@
+<div class="container-fluid">
+    <h4>Analyse resource assignment of {{navbar.currentModel.name}}</h4>
+    <p>Choose the type of analysis you are interested in:</p>
+    <div class="row-fluid" ng-controller="SelectOperationCtrl as selected">
+        <ul class="nav nav-pills">
+            <li data-ng-repeat="op in selected.operationInfo"  data-ng-class="{active: selected.operation == op}">
+                <a href tooltip="{{op.description}}" data-ng-click="selected.operation = op">{{op.name}}</a>
+            </li>
+        </ul>
+
+        <div class="alert alert-info" data-ng-show="selected.operation.description">{{selected.operation.description}}</div>
+
+        <div ng-show="selected.operation.inputType=='oneActivity'">
+            <div class="column" ng-repeat="activity in process.activityNames">
+                <label class="radio">
+                    <input type="radio" name="optionsRadios" value="{{activity}}"ng-value="activity" ng-model="selected.activity">
+                    {{activity}}
+                </label>
+            </div>
+        </div>
+        <div ng-show="selected.operation.inputType=='onePerson'" style="padding:15px 20px;">
+            <div class="column" ng-repeat="person in organization.persons">
+                <label class="radio">
+                    <input type="radio" name="optionsRadios" value="{{person.name}}" ng-value="person.name" ng-model="selected.person">
+                    {{person.name}}
+                </label>
+            </div>
+        </div>
+        <div ng-show="selected.operation.inputType=='multipleActivity'" style="padding:15px 20px;">
+            <div class="column" ng-repeat="activity in process.activityNames" ng-init="selected.activitySet[activity]=false;">
+                <label class="checkbox" >
+                    <input type="checkbox" ng-value="activity" ng-model="selected.activitySet[activity]" > {{activity}}
+                </label>
+            </div>
+            <div style="clear:both; margin-top:15px; float:left">
+                <a ng-click="selected.selectAll()" class="btn btn-link">select all</a> - <a class="btn btn-link" ng-click="selected.unselectAll()" style="cursor: pointer;">unselect all</a>
+            </div>
+        </div>
+        <div data-ng-show="selected.operation" class="separated-top">
+            <a class="btn btn-primary" data-ng-click="createNewAnalysis(selected.operation, selected.getParamString())">Analyse</a>
+        </div>
+    </div>
+
+    <div class="row-fluid separated-top" collapse="performedActions.length==0">
+        <div class="well">
+            <tabset ng-show="performedActions.length>0" id="tabset">
+                <tab ng-repeat="execution in performedActions" active="execution.active">
+                    <tab-heading>
+                        {{execution.operation.abb}} <i class="icon-remove-circle" ng-click="removeAction($index)" style="cursor: pointer;"></i>
+                    </tab-heading>
+                    <div class="tabcontent">
+                        <div>
+                            <h4>{{execution.operation.name}} for {{execution.param}}</h4>
+                            <em>{{execution.operation.description}}</em>
+                        </div>
+                        <div ng-show="execution.result=='waiting'" style="margin-top:20px;">
+                            <p>
+                                <img src="common/loader/bluebar.gif" />
+                            </p>
+
+                        </div>
+                        <div ng-show="execution.result!='waiting'">
+                            <div class="bs-callout bs-callout-danger" ng-show="execution.success==false" style="max-width:100%; padding: 20px 30px; margin-top:15px;">
+                                <h4>Error</h4>
+                                {{execution.result}}
+                            </div>
+                            <div class="bs-callout bs-callout-info" ng-show="execution.success==true" style="max-width:100%; padding: 20px 30px; margin-top:15px;">
+                                <h4>Analysis result</h4>
+                                <p ng-show="execution.result!=''">{{execution.result}}</p>
+                                <p ng-show="execution.result==''">0 results found.</p>
+                            </div>
+                        </div>
+                    </div>
+                </tab>
+            </tabset>
+            <div ng-show="performedActions.length==0">
+                Create a new Analysis
+            </div>
+        </div>
+    </div>
+</div>

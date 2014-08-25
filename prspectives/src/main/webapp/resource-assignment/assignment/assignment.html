@@ -1,0 +1,81 @@
+<h4>Resource assignment of model {{navbar.currentModel.name}}</h4>
+<p class="well">
+    Organizational model: <select ng-model="assignments.organizationalModel" ng-options="model.modelId as model.name for (key, model) in navbar.models | toArray | filter:{type: 'Organization'}"></select>
+        <span ng-hide="! assignments.organizationalModel">
+            <a class="btn btn-mini" ng-click="loadOrganization(assignments.organizationalModel)" tooltip="Reloads organizational model"><i class="icon-refresh"></i> Reload</a>
+            <a class="btn btn-mini" ng-href="{{navbar.models[assignments.organizationalModel].links.editor}}" tooltip="Open organizational model in new window" target="_blank"><i class="icon-share"></i> Open model</a>
+        </span>
+</p>
+
+<div style="text-align:center;">
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" ng-model="assignments[process.processName].active" btn-radio="'ral'">Assignment by RAL Expression</button>
+        <button type="button" class="btn btn-primary" ng-model="assignments[process.processName].active" btn-radio="'rasci'">Assignment by RASCI matrix</button>
+    </div>
+</div>
+
+<hr/>
+
+<div ng-show="assignments[process.processName].active == 'ral'" ng-controller="RALCtrl as ral">
+    <form class="form-horizontal">
+        <div class="control-group" ng-repeat="activity in process.activityNames">
+            <label class="control-label">{{activity}}</label>
+            <div class="controls">
+                <input class="input-xxlarge" type="text"
+                       ng-blur="ral.findPerformers(activity, process.processName, assignments.organizationalModel);"
+                       ng-model="assignments[process.processName].ralAssignment[activity]"
+                       placeholder="RAL Expression" />
+                <img src="common/loading.gif" data-ng-show="ral.analysis[activity].isLoading"/>
+                <div ng-class="{'alert-error': ral.analysis[activity].error, 'alert-success': ral.analysis[activity].success, 'alert': ral.analysis[activity].info}" class="infoResult">
+                    <a data-ng-show="ral.analysis[activity].report" data-ng-click="ral.runToggle(activity)"><i data-ng-class="{'icon-minus-sign': ral.analysis[activity].reportToggle,'icon-plus-sign': !this.analysis[activity].reportToggle}"></i></a>
+                    <span>{{ral.analysis[activity].info}}</span>
+                </div>
+                <div class="bs-callout"
+                     data-ng-class="{'bs-callout-danger': ral.analysis[activity].isError(), 'bs-callout-warning': ral.analysis[activity].warning, 'bs-callout-info': ral.analysis[activity].success}"
+                     data-ng-show="ral.analysis[activity].showReport()">
+                    <div style="padding: 15px 20px;"><h4>{{ral.analysis[activity].report.title}}</h4><p>{{ral.analysis[activity].report.body}}</p></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div ng-show="assignments[process.processName].active == 'rasci'" ng-controller="RASCICtrl as rasci">
+    <div class="row-fluid">
+        <div class="span8">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Activities</th>
+                    <th ng-repeat="role in organization.roles">{{role.name}}</th>
+                </tr>
+                <tr ng-repeat="activity in process.activityNames">
+                    <th>{{activity}}</th>
+                    <td ng-repeat="role in organization.roles" ng-click="rasci.loadCell({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})">
+                        {{rasci.depict({assignment: assignments[process.processName].rasciAssignment, activity: activity, role: role.name})}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="span4" ng-show="rasci.showDetails()">
+            <h4>Binding of role {{rasci.rasciCell.role}} in activity {{rasci.rasciCell.activity}}</h4>
+            <form class="well">
+                <div ng-repeat="(key, value) in rasci.rasciRoles">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="rasci.rasciCell[key].enabled" checked="checked"/>{{key}}
+                    </label>
+                    <input type="text" class="input-xlarge" ng-model="rasci.rasciCell[key].binding" placeholder="Binding expression"/>
+                    <hr>
+                </div>
+                <a ng-click="rasci.saveCell()" class="btn btn-primary">Ok</a>
+                <a ng-click="rasci.cancelDetails()" class="btn">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="well" style="text-align:right;">
+    <a class="btn btn-primary" data-ng-click="save()" data-ng-disabled="saveStatus">
+        <span data-ng-show="saveStatus">Saving...</span>
+        <span data-ng-hide="saveStatus">Save Model</span>
+    </a>
+</div>
