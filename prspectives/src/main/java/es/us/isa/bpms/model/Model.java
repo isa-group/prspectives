@@ -196,7 +196,7 @@ public class Model implements Storeable{
         }
         else if (metamodel.getXmlConverter() != null) {
             try {
-                xml = metamodel.getXmlConverter().transformToXml(model).toString();
+                xml = metamodel.getXmlConverter().transformToXml(this).toString();
                 updated = true;
             } catch (Exception e) {
                 log.warning(e.toString());

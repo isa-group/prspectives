@@ -1,7 +1,7 @@
 package es.us.isa.bpms.model.metamodels;
 
 import es.us.isa.bpms.editor.EditorResource;
-import es.us.isa.bpms.model.BPMNModel2XmlConverter;
+import es.us.isa.bpms.process.BPMNModel2XmlConverter;
 import es.us.isa.bpms.model.Model;
 import es.us.isa.bpms.model.Model2XmlConverter;
 import es.us.isa.bpms.model.ModelsResource;

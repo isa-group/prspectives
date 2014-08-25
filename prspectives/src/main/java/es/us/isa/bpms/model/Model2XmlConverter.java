@@ -11,6 +11,5 @@ import java.io.StringWriter;
  */
 public interface Model2XmlConverter {
     boolean canTransform(String type);
-    StringWriter transformToXml(JSONObject jsonModel);
     StringWriter transformToXml(Model m);
 }
