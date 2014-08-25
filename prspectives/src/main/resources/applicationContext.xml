@@ -17,15 +17,11 @@
                         http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.0.xsd">
 
     <context:annotation-config />
-    <context:component-scan base-package="es.us.isa.ppinot.resource"/>
-    <context:component-scan base-package="es.us.isa.bpms"/>
     <context:component-scan base-package="es.us.isa.prspectives"/>
-
 
 
     <!-- Stencilsets and extensions -->
     <mvc:resources mapping="/editor/stencilsets/**" location="classpath:/stencilsets/"/>
-
     <!-- Webjars -->
     <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" order="-1"/>
     <!-- SpringMVC Resteasy configuration -->
@@ -34,7 +30,7 @@
         <property name="order" value="10"/>
         <property name="throwNotFound" value="false"/>
     </bean>    
-    <!-- Necessary for socialauth authentication -->
+    <!-- Socialauth authentication -->
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
         <property name="order" value="0" />
     </bean>
@@ -48,25 +44,27 @@
     <!-- Default handler for other resources -->
     <mvc:default-servlet-handler/>
 
+
     <!-- Repository -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-    <bean id="modelRepository" class="es.us.isa.bpms.repository.SharedModelRepository">
+    <bean id="modelRepository" class="es.us.isa.prspectives.repository.SharedModelRepository">
         <constructor-arg ref="sharedModelHandler"/>
     </bean>
-    <bean id="sharedModelHandler" class="es.us.isa.bpms.repository.SharedModelHandler"/>
-    <bean id="workspaceFactory" class="es.us.isa.bpms.repository.FileWorkspaceFactory">
+    <bean id="sharedModelHandler" class="es.us.isa.prspectives.repository.SharedModelHandler"/>
+    <bean id="workspaceFactory" class="es.us.isa.prspectives.repository.FileWorkspaceFactory">
         <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
     </bean>
 
     <bean class="es.us.isa.prspectives.config.MetamodelsConfig"/>
 
     <!--   Resources  -->
-    <bean id="repositoryResource" class="es.us.isa.bpms.model.ModelsResource">
+    <bean id="repositoryResource" class="es.us.isa.prspectives.model.ModelsResource">
       	<property name="modelRepository" ref="modelRepository"/>
     </bean>
-    <bean id="editorResource" class="es.us.isa.bpms.editor.EditorResource"/>
-    <bean id="userResource" class="es.us.isa.bpms.users.UserResource"/>
-	<bean id="analyserService" class="es.us.isa.bpms.analyser.AnalyserService"/>
+    <bean id="editorResource" class="es.us.isa.prspectives.editor.EditorResource"/>
+    <bean id="userResource" class="es.us.isa.prspectives.users.UserResource"/>
+	<bean id="analyserService" class="es.us.isa.prspectives.ral.analyser.AnalyserService"/>
+    <bean id="analyserFactory" class="es.us.isa.prspectives.ral.analyser.Neo4JAnalyserFactory" />
 
     <!-- Authentication -->
     <context:component-scan base-package="org.brickred.controller" />
@@ -86,10 +84,8 @@
         <constructor-arg value="index.html" />
         <constructor-arg value="index.html" />
     </bean>
-    
-    <bean id="analyserFactory" class="es.us.isa.bpms.analyser.Neo4JAnalyserFactory" >
-    </bean>
-    
-    
+
+
+    <!-- Cache -->
     <import resource="classpath:cacheConfig.xml" />
 </beans>

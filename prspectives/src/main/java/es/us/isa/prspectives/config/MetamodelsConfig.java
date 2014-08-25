@@ -1,10 +1,9 @@
 package es.us.isa.prspectives.config;
 
-import es.us.isa.bpms.model.metamodels.BpmnMetamodel;
-import es.us.isa.bpms.model.metamodels.MetamodelLibrary;
-import es.us.isa.bpms.model.metamodels.OrgMetamodel;
-import es.us.isa.bpms.ral.RALModel2XMLConverter;
-import es.us.isa.ppinot.resource.PPINOTModel2XmlConverter;
+import es.us.isa.prspectives.model.metamodels.BpmnMetamodel;
+import es.us.isa.prspectives.model.metamodels.MetamodelLibrary;
+import es.us.isa.prspectives.model.metamodels.OrgMetamodel;
+import es.us.isa.prspectives.ral.RALModel2XMLConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
