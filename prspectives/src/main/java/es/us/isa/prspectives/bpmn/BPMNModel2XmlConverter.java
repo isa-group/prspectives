@@ -4,16 +4,14 @@ import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.transformation.Bpmn2XmlConverter;
 import de.hpi.bpmn2_0.transformation.Diagram2BpmnConverter;
-import es.us.isa.prspectives.model.Model;
-import es.us.isa.prspectives.model.Model2XmlConverter;
-import es.us.isa.prspectives.model.metamodels.BpmnMetamodel;
+import es.us.isa.prspectives.core.model.Model;
+import es.us.isa.prspectives.core.model.Model2XmlConverter;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.oryxeditor.server.diagram.basic.BasicDiagram;
 import org.oryxeditor.server.diagram.basic.BasicDiagramBuilder;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.logging.Logger;
 
@@ -42,7 +40,7 @@ public abstract class BPMNModel2XmlConverter implements Model2XmlConverter {
     public void setBpmn20Xsd(Resource bpmn20Xsd) {
         try {
             this.bpmn20XsdPath = bpmn20Xsd.getFile().getAbsolutePath();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.severe("BPMN XSD file could not be found");
             log.severe(e.toString());
         }

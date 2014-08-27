@@ -45,26 +45,17 @@
     <mvc:default-servlet-handler/>
 
 
-    <!-- Repository -->
+    <!-- Java config -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-    <bean id="modelRepository" class="es.us.isa.prspectives.repository.SharedModelRepository">
-        <constructor-arg ref="sharedModelHandler"/>
-    </bean>
-    <bean id="sharedModelHandler" class="es.us.isa.prspectives.repository.SharedModelHandler"/>
-    <bean id="workspaceFactory" class="es.us.isa.prspectives.repository.FileWorkspaceFactory">
-        <constructor-arg value="${PPINOT_REPOSITORY_DIRECTORY}"/>
-    </bean>
-
+    <bean class="es.us.isa.prspectives.config.RepositoryConfig"/>
     <bean class="es.us.isa.prspectives.config.MetamodelsConfig"/>
 
     <!--   Resources  -->
-    <bean id="repositoryResource" class="es.us.isa.prspectives.model.ModelsResource">
+    <bean id="modelsResource" class="es.us.isa.prspectives.core.model.ModelsResource">
       	<property name="modelRepository" ref="modelRepository"/>
     </bean>
     <bean id="editorResource" class="es.us.isa.prspectives.editor.EditorResource"/>
-    <bean id="userResource" class="es.us.isa.prspectives.users.UserResource"/>
-	<bean id="analyserService" class="es.us.isa.prspectives.ral.analyser.AnalyserService"/>
-    <bean id="analyserFactory" class="es.us.isa.prspectives.ral.analyser.Neo4JAnalyserFactory" />
+    <bean id="userResource" class="es.us.isa.prspectives.core.users.UserResource"/>
 
     <!-- Authentication -->
     <context:component-scan base-package="org.brickred.controller" />
