@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 @Profile("devel")
 public class DevelUserService implements UserService {
 
-    private String currentUser = "manuel.resinas@gmail.com";
-    private String otherUser = "resman@gmail.com";
+    private String currentUser = "devel1@example.com";
+    private String otherUser = "devel2@example.com";
 
     @Override
     public String getLoggedUser() {

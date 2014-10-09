@@ -403,7 +403,13 @@ public class ModelsResource {
         checkUserLogged();
         Model m = getModelOrNotFound(id);
         Metamodel metamodel = m.getMetamodel();
-        return metamodel.createPerspectivesResource(m, perspective);
+        Object perspectivesResource = metamodel.createPerspectivesResource(m, perspective);
+
+        if (perspectivesResource == null) {
+            throw new NotFoundException("Perspective " + perspective + " not available for this model");
+        }
+
+        return perspectivesResource;
     }
 
 

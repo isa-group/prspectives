@@ -46,12 +46,12 @@ public class MetamodelsConfig {
         return new BpmnMetamodel(new RALModel2XMLConverter(bpmn20xsd),
                 new ProcessPerspective(),
                 new PPINOTPerspective(modelRepository),
-                new ResourcePerspective(ralAnalyserLibrary()));
+                new ResourcePerspective(modelRepository, ralAnalyserLibrary()));
     }
 
     @Bean
     public RALAnalyserLibrary ralAnalyserLibrary() {
-        Neo4JAnalyserFactory neo4JAnalyserFactory = new Neo4JAnalyserFactory(modelRepository);
+        Neo4JAnalyserFactory neo4JAnalyserFactory = new Neo4JAnalyserFactory();
         OwlAnalyserFactory owlAnalyserFactory = new OwlAnalyserFactory();
 
         RALAnalyserLibrary analyserLibrary = new RALAnalyserLibrary(

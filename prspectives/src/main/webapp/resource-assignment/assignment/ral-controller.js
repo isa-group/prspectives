@@ -12,8 +12,10 @@ function RALCtrl($scope, $http, $log) {
     var self = this;
 
     $scope.$watch("process", function(process) {
-        if (process)
+        if (process)  {
+            self.process = process;
             self.findAllPerformers(process.processName);
+        }
     });
 
 
@@ -63,7 +65,6 @@ RALCtrl.prototype.findAllPerformers = function(processName){
 
     }).error(function(error){
         self.log.error(error);
-        self.analysis[activity].setError("Error performing the analysis.");
     });
 
 };
@@ -124,13 +125,21 @@ RALCtrl.prototype.analyseExpression = function(activity, processName, organizati
         var assignJson = JSON.stringify(this.scope.assignments[processName].ralAssignment);
         var url = this.getAnalyserPath() + "/" + bpmnId + "/" + activity + "/potential_participants?duty=RESPONSIBLE&organization=" + organizationId  + "&assignment=" + assignJson.replace(/{/g,"%7B").replace(/}/g,"%7D");
 
-        this.http.get(url).success(function(data) {
+        var newUrl = this.process.modelInfo.modelLinks.resources + "/potential_participants";
+
+        this.http.post(newUrl, {activityId: activity, organization: organizationId, assignment: this.scope.assignments[processName].ralAssignment}).success(function(data) {
             log.info("analyser success:" + data);
             self.buildResult(activity, data);
-        }).error(function(error){
+        }).error(function(error, code){
+            var body = "";
             log.error(error);
-            var msg = error.match( /<title>(.*)Exception:(.*)<\/title>/ )
-            self.analysis[activity].setError("Error performing the analysis.", {title: "Error message", body: msg[msg.length-1]});
+            if (code == 500) {
+                var msg = error.match( /<title>(.*)Exception:(.*)<\/title>/ );
+                body = msg[msg.length-1];
+            } else if (code == 404) {
+                body = "Operation not available";
+            }
+            self.analysis[activity].setError("Error performing the analysis.", {title: "Error message", body: body});
         });
 
 };

@@ -18,8 +18,8 @@
 
 <div ng-show="assignments[process.processName].active == 'ral'" ng-controller="RALCtrl as ral">
     <form class="form-horizontal">
-        <div class="control-group" ng-repeat="activity in process.activityNames">
-            <label class="control-label">{{activity}}</label>
+        <div class="control-group" ng-repeat="activity in process.activities">
+            <label class="control-label">{{process.activityIdName[activity]}}</label>
             <div class="controls">
                 <input class="input-xxlarge" type="text"
                        ng-blur="ral.findPerformers(activity, process.processName, assignments.organizationalModel);"

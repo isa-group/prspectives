@@ -5,6 +5,7 @@ import es.us.isa.prspectives.core.model.metamodels.AbstractPerspective;
 import es.us.isa.prspectives.core.model.metamodels.Perspective;
 import es.us.isa.prspectives.bpmn.ral.analyser.AnalyserService;
 import es.us.isa.prspectives.bpmn.ral.analyser.RALAnalyserLibrary;
+import es.us.isa.prspectives.core.repository.ModelRepository;
 
 /**
  * ResourcePerspective
@@ -16,8 +17,10 @@ public class ResourcePerspective extends AbstractPerspective implements Perspect
     public static final String RESOURCES = "resources";
 
     private RALAnalyserLibrary analyserLibrary;
+    private ModelRepository modelRepository;
 
-    public ResourcePerspective(RALAnalyserLibrary analyserLibrary) {
+    public ResourcePerspective(ModelRepository modelRepository, RALAnalyserLibrary analyserLibrary) {
+        this.modelRepository = modelRepository;
         this.analyserLibrary = analyserLibrary;
     }
 
@@ -38,6 +41,6 @@ public class ResourcePerspective extends AbstractPerspective implements Perspect
 
     @Override
     public Object createPerspectivesResource(Model m) {
-        return new AnalyserService(analyserLibrary);
+        return new AnalyserService(m, modelRepository, analyserLibrary);
     }
 }

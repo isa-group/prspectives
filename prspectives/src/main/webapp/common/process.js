@@ -1,6 +1,7 @@
 function BPMNModel(modelInfo) {
     this.modelId = modelInfo.modelId;
     this.url = modelInfo.modelLinks.process;
+    this.modelInfo = modelInfo;
     this.processes = {};
 }
 
@@ -13,7 +14,7 @@ jQuery.extend(BPMNModel.prototype, {
 			dataType: "json",
 			success: function(data) {
 			    $(data).each(function() {
-			        var process = new Process(that.modelId, that.url);
+			        var process = new Process(that.modelInfo);
 			        process.load(this);
                     that.processes[this.id] = process;
 			    });
@@ -22,13 +23,15 @@ jQuery.extend(BPMNModel.prototype, {
 	}
 });
 
-function Process(modelId, modelUrl) {
-    this.modelId = modelId;
-    this.modelUrl = modelUrl;
+function Process(modelInfo) {
+    this.modelInfo = modelInfo;
+    this.modelId = modelInfo.modelId;
+    this.modelUrl = modelInfo.modelLinks.process;
     this.processId = "";
 	this.processName = "";
 	this.processNames = [];
 	this.processStates = ["Start", "Cancel","End"];
+	this.activities = [];
 	this.activityNames = [];
 	this.activityNameId = {};
 	this.activityIdName = {};
@@ -57,6 +60,7 @@ jQuery.extend(Process.prototype, {
             if (this.name == "") {
                 this.name = this.id;
             }
+            that.activities.push(this.id);
             that.activityNames.push(this.name);
             that.activityIdName[this.id] = this.name;
             that.activityNameId[this.name] = this.id;

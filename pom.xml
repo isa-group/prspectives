@@ -7,12 +7,14 @@
 	<groupId>es.us.isa.prspectives</groupId>
 	<artifactId>prspectives-parent</artifactId>
 
-	<version>0.2-SNAPSHOT</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
     <properties>
         <oryx.version>1.0-SNAPSHOT</oryx.version>
-        <ppinot.version>2.0-SNAPSHOT</ppinot.version>
+        <ppinot.version>2.1-SNAPSHOT</ppinot.version>
+        <cristal.version>1.2-SNAPSHOT</cristal.version>
+        <bpmn.version>2.1</bpmn.version>
     </properties>
 
 
@@ -89,7 +91,7 @@
             <dependency>
                 <groupId>es.us.isa.bpmn</groupId>
                 <artifactId>bpmn-model</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>${bpmn.version}</version>
             </dependency>
 
             <!-- PPINOT -->
@@ -108,6 +110,24 @@
                 <artifactId>ppinot-templates-angular</artifactId>
                 <version>${ppinot.version}</version>
             </dependency>
+
+            <!-- CRISTAL -->
+            <dependency>
+                <groupId>es.us.isa.cristal</groupId>
+                <artifactId>raci2bpmn</artifactId>
+                <version>${cristal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.us.isa.cristal</groupId>
+                <artifactId>ral-neo4j-analyser</artifactId>
+                <version>${cristal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.us.isa.cristal</groupId>
+                <artifactId>organization-gson-model</artifactId>
+                <version>${cristal.version}</version>
+            </dependency>
+
 
             <!-- Infrastructure -->
             <dependency>

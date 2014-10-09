@@ -90,39 +90,5 @@ public class BpmnMetamodel extends CommonMetamodel implements Metamodel {
         return converter;
     }
 
-    private boolean hasBeenAssigned(Model m){
-        boolean result = false;
-        try {
-            if(m.getExtensions().has("assignments")){
-                JSONObject obj = m.getExtensions().getJSONObject("assignments");
-                if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
-                    result = true;
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-    public String getOrganization(Model m){
-        if(!hasBeenAssigned(m)){
-            return null;
-        }
-        String result=null;
-
-        try {
-            if(m.getExtensions().has("assignments")){
-                JSONObject obj = m.getExtensions().getJSONObject("assignments");
-                if(obj.has("organizationalModel") && !obj.getString("organizationalModel").isEmpty()){
-                    result = obj.getString("organizationalModel");
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
 
 }
