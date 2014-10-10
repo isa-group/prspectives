@@ -2,6 +2,7 @@ package es.us.isa.prspectives.config;
 
 import es.us.isa.prspectives.bpmn.process.ProcessPerspective;
 import es.us.isa.prspectives.bpmn.BpmnMetamodel;
+import es.us.isa.prspectives.bpmn.ral.analyser.Neo4JCache;
 import es.us.isa.prspectives.core.model.metamodels.MetamodelLibrary;
 import es.us.isa.prspectives.org.OrgMetamodel;
 import es.us.isa.prspectives.bpmn.ral.RALModel2XMLConverter;
@@ -51,7 +52,7 @@ public class MetamodelsConfig {
 
     @Bean
     public RALAnalyserLibrary ralAnalyserLibrary() {
-        Neo4JAnalyserFactory neo4JAnalyserFactory = new Neo4JAnalyserFactory();
+        Neo4JAnalyserFactory neo4JAnalyserFactory = neo4JAnalyserFactory();
         OwlAnalyserFactory owlAnalyserFactory = new OwlAnalyserFactory();
 
         RALAnalyserLibrary analyserLibrary = new RALAnalyserLibrary(
@@ -62,6 +63,16 @@ public class MetamodelsConfig {
         analyserLibrary.defaultFactory(neo4JAnalyserFactory);
 
         return analyserLibrary;
+    }
+
+    @Bean
+    public Neo4JAnalyserFactory neo4JAnalyserFactory() {
+        return new Neo4JAnalyserFactory(neo4JCache());
+    }
+
+    @Bean
+    public Neo4JCache neo4JCache() {
+        return new Neo4JCache();
     }
 
 }

@@ -14,7 +14,11 @@ function RALCtrl($scope, $http, $log) {
     $scope.$watch("process", function(process) {
         if (process)  {
             self.process = process;
-            self.findAllPerformers(process.processName);
+            self.orgId = self.scope.assignments.organizationalModel;
+            self.assignments = self.scope.assignments[process.processName].ralAssignment;
+            self.analyser = new Analyser(process, self.http, self.log);
+
+            self.findAllPerformers(process);
         }
     });
 
@@ -36,42 +40,36 @@ RALCtrl.prototype.setOldAssignmentValue = function(processName,activity, value){
     this.oldAssignments[processName].ralAssignment[activity] = value;
 };
 
-RALCtrl.prototype.findAllPerformers = function(processName){
+RALCtrl.prototype.findAllPerformers = function(process){
     var self = this;
-    var activities = "";
-    var orgId = this.scope.assignments.organizationalModel;
+    var processName = process.processName;
+    var activitiesToAnalyse = [];
 
-    angular.forEach(this.scope.assignments[processName].ralAssignment, function(ax, aid) {
+    angular.forEach(self.assignments, function(ax, aid) {
         self.analysis[aid] = new AnalysisInfo();
-        if(self.checkSyntax(aid, self.scope.assignments[processName].ralAssignment[aid])){
-            if(activities!=""){
-                activities += ";";
-            }
-            activities += aid;
+        if(self.checkSyntax(aid, self.assignments[aid])){
+            activitiesToAnalyse.push(aid);
             self.analysis[aid].setLoading();
         }
     });
 
-    var bpmnId = this.scope.bpmnModel.modelId;
-
-    var assignJson = JSON.stringify(this.scope.assignments[processName].ralAssignment);
-    var url = this.getAnalyserPath() + "/" + bpmnId + "/potential_participants?duty=RESPONSIBLE&activities=" + activities.replace(/;/g,"%3B") + "&organization=" + orgId  + "&assignment=" + assignJson.replace(/{/g,"%7B").replace(/}/g,"%7D");
-    self.http.get(url).success(function(data) {
+    this.analyser.potentialParticipants(activitiesToAnalyse, self.orgId, self.assignments).success(function(data) {
         self.log.info("analyser success:" + data);
         angular.forEach(data, function(x, act) {
             self.buildResult(act, data[act]);
-            self.setOldAssignmentValue(processName, act, self.scope.assignments[processName].ralAssignment[act]);
+            self.setOldAssignmentValue(processName, act, self.assignments[act]);
         });
 
     }).error(function(error){
         self.log.error(error);
     });
 
+
 };
 
 RALCtrl.prototype.findPerformers = function(activity, processName, organizationId){
     var self = this;
-    var value = this.scope.assignments[processName].ralAssignment[activity];
+    var value = this.assignments[activity];
     var oldValue = this.getOldAssignmentValue(processName, activity);
 
     if(value && value.trim() != oldValue) {
@@ -82,36 +80,40 @@ RALCtrl.prototype.findPerformers = function(activity, processName, organizationI
 
         if(this.checkSyntax(activity, value)){
             this.analyseExpression(activity, processName, organizationId);
-            // for those assignments: IS PERSON WHO DID ACTIVITY 'activity' update them
-            angular.forEach(this.scope.assignments[processName].ralAssignment, function(ax, aid) {
-                if(aid!=activity && self.getOldAssignmentValue(processName, aid)!="[auto.cascade]" && self.scope.assignments[processName].ralAssignment[aid]=="IS PERSON WHO DID ACTIVITY " + activity){
-                    self.setOldAssignmentValue(processName, aid, "[auto.cascade]");
-                    self.findPerformers(aid, processName, organizationId);
-                }
-            });
-
+            this.updateDependentExpressions(activity, processName, organizationId);
         }
         this.setOldAssignmentValue(processName, activity, value);
     }
 };
 
-RALCtrl.prototype.checkSyntax = function(activity, value){
+RALCtrl.prototype.updateDependentExpressions = function(activity, processName, organizationId) {
+    var self = this;
 
-        var result = false;
-        this.log.info("checking syntax: " + value);
-
-        try{
-            var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
-            var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
-            var parser = new RALParser(tokens);
-            parser.expression();
-            result = true;
-        }catch(error){
-            this.log.error(error);
-            this.analysis[activity].setError("Invalid Expression!");
+    angular.forEach(this.assignments, function(ax, aid) {
+        if(aid!=activity &&
+           self.getOldAssignmentValue(processName, aid)!="[auto.cascade]" &&
+           self.assignments[aid]=="IS PERSON WHO DID ACTIVITY " + activity) {
+                self.setOldAssignmentValue(processName, aid, "[auto.cascade]");
+                self.findPerformers(aid, processName, organizationId);
         }
-        return result;
+    });
+}
 
+RALCtrl.prototype.checkSyntax = function(activity, value){
+    var result = false;
+    this.log.info("checking syntax: " + value);
+
+    try{
+        var lexer = new RALLexer(new org.antlr.runtime.ANTLRStringStream(value));
+        var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
+        var parser = new RALParser(tokens);
+        parser.expression();
+        result = true;
+    }catch(error){
+        this.log.error(error);
+        this.analysis[activity].setError("Invalid Expression!");
+    }
+    return result;
 };
 
 RALCtrl.prototype.runToggle = function (activity) {
@@ -119,18 +121,15 @@ RALCtrl.prototype.runToggle = function (activity) {
 }
 
 RALCtrl.prototype.analyseExpression = function(activity, processName, organizationId){
-        var self = this;
-        var log = this.log;
-        var bpmnId = this.scope.bpmnModel.modelId;
-        var assignJson = JSON.stringify(this.scope.assignments[processName].ralAssignment);
-        var url = this.getAnalyserPath() + "/" + bpmnId + "/" + activity + "/potential_participants?duty=RESPONSIBLE&organization=" + organizationId  + "&assignment=" + assignJson.replace(/{/g,"%7B").replace(/}/g,"%7D");
+    var self = this;
+    var log = this.log;
 
-        var newUrl = this.process.modelInfo.modelLinks.resources + "/potential_participants";
-
-        this.http.post(newUrl, {activityId: activity, organization: organizationId, assignment: this.scope.assignments[processName].ralAssignment}).success(function(data) {
+    this.analyser.potentialParticipants([activity], organizationId, this.assignments)
+        .success(function(data) {
             log.info("analyser success:" + data);
-            self.buildResult(activity, data);
-        }).error(function(error, code){
+            self.buildResult(activity, data[activity]);
+        })
+        .error(function(error, code){
             var body = "";
             log.error(error);
             if (code == 500) {
@@ -178,6 +177,26 @@ RALCtrl.prototype.getIdFromName = function (name){
     return name.toLowerCase().replace(/ /g,"_");
 };
 
+
+// Analyser class -----------------------------------
+
+function Analyser(process, $http, $log) {
+    this.http = $http;
+    this.log = $log;
+    this.process = process;
+    this.analyserPath = process.modelInfo.modelLinks.resources + "/" + process.processId;
+}
+
+Analyser.prototype.potentialParticipants = function(activitiesToAnalyse, orgId, assignments) {
+    var url = this.analyserPath + "/potential_participants";
+    return this.http.post(url, {
+        organization: orgId,
+        assignment: assignments,
+        activities: activitiesToAnalyse
+    });
+}
+
+// AnalysisInfo class   ------------------------------
 
 function AnalysisInfo() {
     this.reset();

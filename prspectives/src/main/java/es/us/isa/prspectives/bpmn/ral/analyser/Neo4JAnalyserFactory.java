@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import es.us.isa.bpmn.handler.Bpmn20ModelHandler;
 import es.us.isa.cristal.RawResourceAssignment;
@@ -27,8 +28,15 @@ import es.us.isa.cristal.neo4j.analyzer.Neo4jRALAnalyser;
 import es.us.isa.cristal.neo4j.analyzer.util.DesignTimeAnalyserBPEngine;
 
 
-public class Neo4JAnalyserFactory implements AnalyserFactory{
+public class Neo4JAnalyserFactory implements AnalyserFactory {
 
+    private static final Logger log = Logger.getLogger(Neo4JAnalyserFactory.class.getName());
+
+    private Neo4JCache cache;
+
+    public Neo4JAnalyserFactory(Neo4JCache cache) {
+        this.cache = cache;
+    }
 
     @Override
     public String getType() {
@@ -38,8 +46,7 @@ public class Neo4JAnalyserFactory implements AnalyserFactory{
 
     @Override
     public RALAnalyser getAnalyser(Bpmn20ModelHandler bpmn, String processId, OrganizationalModel organization) throws Exception {
-
-        ExecutionEngine engine = getExecutionEngine(organization);
+        ExecutionEngine engine = cache.getExecutionEngine(organization);
         BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, null);
         Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, processId);
 
@@ -47,29 +54,14 @@ public class Neo4JAnalyserFactory implements AnalyserFactory{
     }
 
     @Override
-    public RALAnalyser getAnalyser(RawResourceAssignment assignment, OrganizationalModel organization) throws Exception {
-        ExecutionEngine engine = getExecutionEngine(organization);
-        BPEngine bpEngine = new DesignTimeAnalyserBPEngine(null, assignment);
-        Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, null);
+    public RALAnalyser getAnalyser(Bpmn20ModelHandler bpmn, String processId, OrganizationalModel organization, RawResourceAssignment assignmentExtension) throws Exception {
+        ExecutionEngine engine = cache.getExecutionEngine(organization);
+        BPEngine bpEngine = new DesignTimeAnalyserBPEngine(bpmn, assignmentExtension);
+        Neo4jRALAnalyser analyzer = new Neo4jRALAnalyser(engine, bpEngine, processId);
+
         return analyzer;
     }
-    
-	@Cacheable(value = "modelCache", key = "#org.hashCode()")
-    private ExecutionEngine getExecutionEngine(OrganizationalModel org) {
 
-        ExecutionEngine engine;
 
-        String dirName = System.getenv("TEMP") + File.separator + "neo4j-" + UUID.randomUUID().toString();
-        GraphDatabaseService graphDb = new GraphDatabaseFactory()
-                .newEmbeddedDatabaseBuilder(dirName)
-                .setConfig(GraphDatabaseSettings.node_keys_indexable, "name, position, role, unit")
-                .setConfig(GraphDatabaseSettings.node_auto_indexing, "true")
-                .newGraphDatabase();
-        engine = new ExecutionEngine(graphDb, StringLogger.logger(new File(dirName + File.separator + "log.log")));
-        engine.execute(org.getCypherCreateQuery());
-
-        return engine;
-    }
- 
 
 }

@@ -18,7 +18,7 @@ public class OwlAnalyserFactory implements AnalyserFactory{
     }
 
     @Override
-    public RALAnalyser getAnalyser(RawResourceAssignment assignment, OrganizationalModel organization) throws Exception {
+    public RALAnalyser getAnalyser(Bpmn20ModelHandler bpmn, String processId, OrganizationalModel organization, RawResourceAssignment assignmentExtension) throws Exception {
         return null;
     }
 }

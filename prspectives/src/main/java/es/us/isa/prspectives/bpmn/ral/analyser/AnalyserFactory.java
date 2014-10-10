@@ -9,5 +9,5 @@ import es.us.isa.prspectives.core.model.metamodels.TypedElement;
 public interface AnalyserFactory extends TypedElement {
 
     RALAnalyser getAnalyser(Bpmn20ModelHandler bpmn, String processId, OrganizationalModel organization) throws Exception;
-    RALAnalyser getAnalyser(RawResourceAssignment assignment, OrganizationalModel organization) throws Exception;
+    RALAnalyser getAnalyser(Bpmn20ModelHandler bpmn, String processId, OrganizationalModel organization, RawResourceAssignment assignmentExtension) throws Exception;
 }

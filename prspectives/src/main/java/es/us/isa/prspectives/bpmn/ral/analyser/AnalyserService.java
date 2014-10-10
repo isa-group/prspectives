@@ -3,11 +3,7 @@ package es.us.isa.prspectives.bpmn.ral.analyser;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,8 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import es.us.isa.bpmn.handler.Bpmn20ModelHandler;
 import es.us.isa.bpmn.handler.Bpmn20ModelHandlerImpl;
 import es.us.isa.cristal.RawResourceAssignment;
@@ -52,38 +46,29 @@ public class AnalyserService {
         this.modelRepository = modelRepository;
     }
 
-    @Path("/analyser")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> listOperations(@Context UriInfo uriInfo) {
-        Map<String, String> uris = new HashMap<String, String>();
-        URI uri = uriInfo.getAbsolutePathBuilder().path(this.getClass(), "potentialParticipants").build();
-        uris.put("potentialParticipants", uri.toString());
-
-        return uris;
-    }
-
-    @Path("/potential_participants")
+    @Path("/{processId}/potential_participants")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Set<String> genericPotentialParticipants(String operationData,
+    public Map<String,Set<String>> genericPotentialParticipants(String operationData,
+                                                    @PathParam("processId") String processId,
                                                     @QueryParam("duty") @DefaultValue("RESPONSIBLE") String duty) throws Exception {
-        Gson gson = new Gson();
-        JsonObject element = gson.fromJson(operationData, JsonObject.class);
+        Map<String,Set<String>> resultMap = new HashMap<String,Set<String>>();
+        OperationData data = new OperationData(operationData);
+        TaskDuty taskDuty = TaskDuty.valueOf(duty);
 
-        String organizationId = element.getAsJsonPrimitive("organization").getAsString();
-        JsonElement assignment = element.get("assignment");
-        RawResourceAssignment resourceAssignment = new RawResourceAssignment();
-        resourceAssignment.addAll(gson.fromJson(assignment, HashMap.class));
+        RALAnalyser analyser = getAnalyser(processId, data.getOrganizationId(), data.getRawResourceAssignment());
 
-        RALAnalyser analyser = getAnalyser(resourceAssignment, organizationId);
+        Collection<String> acts = data.getActivitiesId();
+        for(String activityId: acts){
+            Set<String> res = analyser.potentialParticipants(activityId, taskDuty);
+            resultMap.put(activityId, res);
+        }
 
-        String activityId = element.get("activityId").getAsString();
-        return analyser.potentialParticipants(activityId, TaskDuty.valueOf(duty));
+        return resultMap;
     }
 
-    @Path("/{processId}/{activityId}/potential_participants")
+    @Path("/{processId}/potential_participants/{activityId}")
     @GET
     @Produces("application/json")
     public Set<String> potentialParticipants(@PathParam("activityId") String activityId,
@@ -95,29 +80,8 @@ public class AnalyserService {
         return analyser.potentialParticipants(activityId, TaskDuty.valueOf(duty));
     }
     
-    
-    @Path("/{processId}/potential_participants")
-    @GET
-    @Produces("application/json")
-	public Map<String,Set<String>> potentialParticipantsForMultipleActivities(@PathParam("processId") String processId, @QueryParam("activities") String activities, @QueryParam("duty") String duty, @QueryParam("organization") String organizationModelUrl, @QueryParam("assignment") String assignment) throws Exception {
-    	Map<String,Set<String>> resultMap = new HashMap<String,Set<String>>();
-    	if(duty==null || duty.isEmpty()){
-			duty = "RESPONSIBLE";
-		}
-    	TaskDuty td = TaskDuty.valueOf(duty);
-    	RALAnalyser analyser = getAnalyser(processId, organizationModelUrl);
-    	List<String> acts = getActivities(activities);
-    	for(String activityName: acts){
-    		Set<String> res = analyser.potentialParticipants(activityName, td);
-    		resultMap.put(activityName, res);
-    	}
-    	return resultMap;
-    }
-    
-    	
-	
 
-	@Path("/{processId}/{personName}/potential_activities")
+	@Path("/{processId}/potential_activities/{personName}")
 	@GET @Produces("application/json")
 	public Set<String> potentialActivities(@PathParam("processId") String processId,
                                            @PathParam("personName") String personName,
@@ -126,7 +90,7 @@ public class AnalyserService {
 		return analyser.potentialActivities(personName, TaskDuty.valueOf(duty));
 	}
 
-	@Path("/{processId}/{activityName}/basic_consistency")
+	@Path("/{processId}/basic_consistency")
 	@GET @Produces("application/json")
 	public boolean basicConsistency(@PathParam("processId") String processId,
                                     @PathParam("activityName") String activityName,
@@ -192,7 +156,8 @@ public class AnalyserService {
 		return analyser.indispensableParticipants(acts, TaskDuty.valueOf(duty));
 	}
 
-	
+
+    // -- Auxiliary methods
 	
 	
 	private List<String> getActivities(String activities) {
@@ -208,28 +173,22 @@ public class AnalyserService {
 		return getAnalyser (processId, null);
 	}
 
-    private RALAnalyser getAnalyser(RawResourceAssignment resourceAssignment, String organizationId) throws Exception {
-        AnalyserFactory analyserFactory = library.getFactory();
-        OrganizationalModel org = getOrganizationalModel(organizationId);
-
-        return analyserFactory.getAnalyser(resourceAssignment, org);
-    }
-
-
     private  RALAnalyser getAnalyser(String processId, String organizationId) throws Exception {
         AnalyserFactory analyserFactory = library.getFactory();
-
-        String context = organizationId==null? "analyser" : "assignment";
         log.info("CREATE NEW ANALYZER:" + model.getModelId());
 
-        if (! (model.getMetamodel() instanceof BpmnMetamodel)) {
-            throw new RuntimeException("Model is not a BPMN model");
-        }
-
-        Bpmn20ModelHandler bpmn = getBpmn(model ,context);
+        Bpmn20ModelHandler bpmn = getBpmn();
         OrganizationalModel org = getOrganizationalModel(organizationId);
 
         return analyserFactory.getAnalyser(bpmn, processId, org);
+    }
+
+    private RALAnalyser getAnalyser(String processId, String organizationId, RawResourceAssignment resourceAssignment) throws Exception {
+        AnalyserFactory analyserFactory = library.getFactory();
+        Bpmn20ModelHandler bpmn = getBpmn();
+        OrganizationalModel org = getOrganizationalModel(organizationId);
+
+        return analyserFactory.getAnalyser(bpmn, processId, org, resourceAssignment);
     }
 
     private OrganizationalModel getOrganizationalModel(String organizationId) {
@@ -241,15 +200,21 @@ public class AnalyserService {
         return loadOrganizationalModel(organizationId);
     }
 
-    @Cacheable(value = "modelCache", key = "organizationId")
     private OrganizationalModel loadOrganizationalModel(String organizationId) {
         Model model = modelRepository.getModel(organizationId);
         Gson gson = new Gson();
         return gson.fromJson(model.getModel().toString(), OrganizationalModel.class);
     }
 
-    @Cacheable(value = "modelCache", key = "#m.modelId.concat('/').concat(#context)")
-    private Bpmn20ModelHandler getBpmn(Model m, String context) {
+    private Bpmn20ModelHandler getBpmn() {
+        if (! (model.getMetamodel() instanceof BpmnMetamodel)) {
+            throw new RuntimeException("Model is not a BPMN model");
+        }
+
+        return loadBpmn(model);
+    }
+
+    private Bpmn20ModelHandler loadBpmn(Model m) {
         m.updateXmlFromModel();
         Bpmn20ModelHandler modelHandler = new Bpmn20ModelHandlerImpl();
         try {
