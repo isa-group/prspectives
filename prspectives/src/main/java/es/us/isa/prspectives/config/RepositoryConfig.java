@@ -19,7 +19,12 @@ public class RepositoryConfig {
 
     @Bean
     public ModelRepository modelRepository() {
-        return new SharedModelRepository(new SharedModelHandler());
+        return new SharedModelRepository(sharedModelHandler());
+    }
+
+    @Bean
+    public SharedModelHandler sharedModelHandler() {
+        return new SharedModelHandler();
     }
 
     @Bean
