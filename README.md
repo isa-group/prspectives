@@ -9,7 +9,7 @@ It integrates several technologies that have been developed as part of Research 
 
 In addition, it also integrates a model editor based on [Oryx Editor](http://bpt.hpi.uni-potsdam.de/Oryx).
 
-You can try PRspectives online at http://labs.isa.us.es:8080/prspectives
+You can try PRspectives online at https://prspectives.services.governify.io
 
 Features
 --------
